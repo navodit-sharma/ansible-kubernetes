@@ -1,0 +1,10 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: block-replicapool
+  namespace: {{ rook_k8s_namespace }}
+spec:
+  failureDomain: host
+  replicated:
+    size: {{ rook_cbp_datapool_replica_size }}

@@ -1,0 +1,69 @@
+---
+
+rook_system_user: root
+rook_system_group: root
+rook_data_dir_host_disk: "/dev/xvdc"
+rook_data_dir_host_path: "/var/lib/rook"
+rook_server_config_dir_path: "/root/rook-ceph"
+rook_server_setup_status_file: "{{ rook_server_config_dir_path }}/.rook-ceph_setup_staus.doNotDelete"
+rook_server_log_dir_path: "/var/log/rook-ceph"
+rook_k8s_namespace: provisioners
+rook_k8s_priority_class_name: "storage-cluster-critical"
+rook_k8s_priority_class_value: 99999999
+rook_node_affinity_label_key: "storage"
+rook_node_affinity_label_value: "rook-ceph"
+rook_log_level: "INFO"
+rook_mon_count: 3
+rook_mon_allow_multiple_per_node: "false"
+rook_dashboard_enabled: "true"
+rook_dashboard_ssl_enabled: "true"
+rook_monitoring_enabled: "false"
+rook_operator_host_network_enabled: "false"
+rook_crash_collector_disabled: "false"
+
+rook_mgr_resource_limit_cpu: "1"
+rook_mgr_resource_limit_memory: "1024Mi"
+rook_mgr_resource_request_cpu: "1"
+rook_mgr_resource_request_memory: "1024Mi"
+
+rook_mon_resource_limit_cpu: "1"
+rook_mon_resource_limit_memory: "2048Mi"
+rook_mon_resource_request_cpu: "1"
+rook_mon_resource_request_memory: "2048Mi"
+
+rook_osd_resource_limit_cpu: "1"
+rook_osd_resource_limit_memory: "3072Mi"
+rook_osd_resource_request_cpu: "1"
+rook_osd_resource_request_memory: "3072Mi"
+
+rook_storage_use_all_nodes: "false"
+rook_storage_use_all_devices: "false"
+rook_storage_store_type: bluestore
+# Please make sure you maintain the white-spaces as they
+# are for below property "rook_storage_nodes", indentation of 2 is minimum
+rook_storage_nodes: |-2
+  # List of nodes and devices
+      nodes:
+      - name: "valpaas03.valamis.local"
+        devices:
+        - name: xvde
+        - name: xvdg
+      - name: "valpaas04.valamis.local"
+        devices:
+        - name: xvde
+        - name: xvdg
+      - name: "valpaas05.valamis.local"
+        devices:
+        - name: xvde
+        - name: xvdg
+
+rook_cbp_datapool_replica_size: 3
+rook_cfs_metapool_replica_size: 3
+rook_cfs_datapool_replica_size: 3
+
+rook_mds_resource_limit_cpu: "1"
+rook_mds_resource_limit_memory: "5120Mi"
+rook_mds_resource_request_cpu: "1"
+rook_mds_resource_request_memory: "5120Mi"
+
+rook_rbd_storage_class_fstype: "ext4"

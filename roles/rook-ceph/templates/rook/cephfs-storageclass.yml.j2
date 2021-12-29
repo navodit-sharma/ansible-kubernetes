@@ -1,0 +1,19 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-filesystem
+provisioner: "{{ rook_k8s_namespace }}.cephfs.csi.ceph.com"
+parameters:
+  clusterID: {{ rook_k8s_namespace }}
+  fsName: rook-cephfs
+  pool: rook-cephfs-data0
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: {{ rook_k8s_namespace }}
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: {{ rook_k8s_namespace }}
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: {{ rook_k8s_namespace }}
+  mounter: kernel
+allowVolumeExpansion: true
+reclaimPolicy: Delete

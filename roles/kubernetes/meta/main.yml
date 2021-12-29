@@ -1,0 +1,6 @@
+---
+
+dependencies:
+  - { role: os-setup, tags: os }
+  - { role: docker, tags: docker }
+  - { role: kubernetes-common, when: task_type == 'install', tags: k8s }

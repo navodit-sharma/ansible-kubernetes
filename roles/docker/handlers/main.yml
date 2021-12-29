@@ -1,0 +1,5 @@
+---
+
+- name: Restart docker.service
+  include_tasks: tasks/restart-docker.yml
+

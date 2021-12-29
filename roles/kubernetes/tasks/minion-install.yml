@@ -1,0 +1,64 @@
+---
+
+- name: Setup iptables rules for K8S Minion machine
+  template:
+    src: "{{ role_path }}/templates/minion/iptables/rules.v4"
+    dest: /etc/iptables/rules.v4
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    backup: yes
+  notify: Restart firewall and docker service
+
+- meta: flush_handlers
+
+- name: Create kubernetes log directory
+  file:
+    path: {{ kubernetes_log_dir_path }}
+    state: directory
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    recurse: yes
+
+- name: Running preflight checks
+  command: "{{ hostvars[groups['master'][0]].ansible_facts.ansible_local.kubeadm_join.cmd | regex_replace('join', 'join phase preflight') }}"
+  register: preflightChecks
+
+- name: Validating if node should be initialized as MASTER
+  debug:
+    msg:
+      - "************"
+      - "*** INFO ***"
+      - "************"
+      - "It seems this machine has been already initialized as MASTER, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
+      - "kubeadm reset -f"
+  when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1
+
+- name: Setup kubernetes minion
+  command: "{{ hostvars[groups['master'][0]].ansible_facts.ansible_local.kubeadm_join.cmd }}"
+  register: kubeadmJoinResult
+  ignore_errors: yes
+  when: preflightChecks is succeeded
+
+- name: Write kubeadm join logs
+  block:
+    - name: Write kubeadm join stdout result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-join.log"
+        content: "{{ kubeadmJoinResult.stdout_lines | join('\n') }}"
+      when: kubeadmJoinResult.stdout_lines is defined
+    - name: Write kubeadm join stderr result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-join-error.log"
+        content: "{{ kubeadmJoinResult.stderr_lines | join('\n') }}"
+      when: kubeadmJoinResult.stderr_lines is defined
+
+- name: Check if play can continue
+  fail: 
+    msg:
+      - "**********************"
+      - "*** Error detected ***"
+      - "**********************"
+      - "Kubernetes minion setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
+  when: kubeadmJoinResult is failed

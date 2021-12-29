@@ -1,0 +1,6 @@
+---
+
+docker_apt_key_url: https://download.docker.com/linux/ubuntu/gpg
+
+docker_deb_url: https://download.docker.com/linux/ubuntu
+docker_deb_distro: bionic

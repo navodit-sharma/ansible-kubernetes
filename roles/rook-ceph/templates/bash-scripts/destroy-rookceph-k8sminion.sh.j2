@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+##################################################################################
+# Author : Navodit Sharma
+# Purpose : Very simple script to destroy rook-ceph cluster on Kubernetes minion.
+##################################################################################
+
+# Wipe clean data from all VMs & Disks part of rook-ceph cluster
+read -p "Provide complete path of disks in space separated format : [/dev/sda /dev/sdb] : " DISKS
+for DISK in ${DISKS}
+do
+  /sbin/sgdisk --zap-all ${DISK}
+done
+
+ls /dev/mapper/ceph-* | xargs -I% -- dmsetup remove %
+rm -rvf /dev/ceph-* /dev/mapper/ceph--*
+rm -rvf /var/lib/rook/*

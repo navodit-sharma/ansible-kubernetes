@@ -1,0 +1,63 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: InitConfiguration
+bootstrapTokens:
+- token: "{{ kubernetes_kubeadm_token }}"
+  ttl: "{{ kubernetes_kubeadm_token_ttl }}"
+  usages:
+  - signing
+  - authentication
+  groups:
+  - system:bootstrappers:kubeadm:default-node-token
+nodeRegistration:
+  name: "{{ hostvars[inventory_hostname].ansible_nodename }}"
+  criSocket: /var/run/dockershim.sock
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+  kubeletExtraArgs:
+    cgroup-driver: "systemd"
+localAPIEndpoint:
+  advertiseAddress: "{{ hostvars[inventory_hostname]['ansible_' + network_interface].ipv4.address }}"
+  bindPort: 6443
+---
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: "v{{ kubernetes_version | regex_replace('-\d+$', '') }}"
+clusterName: "{{ kubernetes_cluster_name }}"
+imageRepository: "k8s.gcr.io"
+certificatesDir: "/etc/kubernetes/pki"
+controlPlaneEndpoint: ""
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: "/var/lib/etcd"
+    extraArgs:
+      cipher-suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+networking:
+  dnsDomain: "{{ kubernetes_dns_name }}"
+  podSubnet: "10.32.0.0/12"
+  serviceSubnet: "10.96.0.0/12"
+apiServer:
+  timeoutForControlPlane: 4m0s
+  extraArgs:
+    allow-privileged: "true"
+    tls-cipher-suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+    tls-min-version: "VersionTLS12"
+    v: "2"
+controllerManager: 
+  extraArgs:
+    tls-cipher-suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+    tls-min-version: "VersionTLS12"
+    v: "2"
+scheduler: 
+  extraArgs:
+    tls-cipher-suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+    tls-min-version: "VersionTLS12"
+    v: "2"
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+serializeImagePulls: false  

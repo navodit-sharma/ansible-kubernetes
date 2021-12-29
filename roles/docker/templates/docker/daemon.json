@@ -1,0 +1,18 @@
+{
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "data-root": "/var/lib/docker",
+    "storage-driver": "overlay2",
+    "log-driver": "json-file",
+    "log-opts": {
+    "max-size": "10m",
+    "max-file": "3",
+    "labels": "live"
+    },
+    "log-level": "info",
+    "debug": false,
+    "ipv6": false,
+    "iptables": false,
+    "selinux-enabled": true,
+    "ip-forward": true,
+    "ip-masq": false
+}

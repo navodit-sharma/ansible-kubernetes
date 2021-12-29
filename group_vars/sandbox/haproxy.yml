@@ -1,0 +1,6 @@
+---
+haprx_version: "1.8.8-1ubuntu0.10"
+haprx_basic_auth_enabled: 'false'
+haprx_basic_auth_user: valamis
+haprx_basic_auth_password: "skEgwcKA9JWdvMMx"
+haprx_listen_stats_status: "disable"

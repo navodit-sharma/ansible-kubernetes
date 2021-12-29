@@ -1,0 +1,30 @@
+---
+haprx_version: "1.8.8-1ubuntu0.10"
+haprx_system_group: root
+haprx_system_user: root
+# haproxy.cfg
+haprx_global_stats_timeout: "30s"
+haprx_haproxy_group: haproxy
+haprx_haproxy_user: haproxy
+haprx_global_ssl_default_bind_ciphers: "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS"
+haprx_global_ssl_default_bind_options: "no-sslv3 no-tls-tickets force-tlsv12"
+haprx_defaults_log: global
+haprx_defaults_mode: http
+haprx_defaults_retries: "3"
+haprx_defaults_timeout_queue: "45s"
+haprx_defaults_timeout_connect: "30s"
+haprx_defaults_timeout_check: "1m"
+haprx_defaults_timeout_server: "15m"
+haprx_defaults_timeout_server_fin: "30s"
+haprx_defaults_timeout_client: "15m"
+haprx_defaults_timeout_client_fin: "30s"
+haprx_defaults_timeout_http_request: "30s"
+haprx_defaults_timeout_http_keep_alive: "5m"
+haprx_defaults_timeout_tarpit: "1h" 
+haprx_defaults_timeout_tunnel: "1h"
+haprx_defaults_maxconn: 80000
+haprx_basic_auth_enabled: 'false'
+haprx_basic_auth_userlist: "Loadbalancer Authorization"
+haprx_basic_auth_user: valamis
+haprx_basic_auth_password: "skEgwcKA9JWdvMMx"
+haprx_listen_stats_status: "disable"

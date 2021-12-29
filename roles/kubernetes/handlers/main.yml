@@ -1,0 +1,10 @@
+---
+
+- name: Restart firewall and docker service
+  include_tasks: tasks/restart-firewall-and-docker.yml
+
+- name: Restart kubelet.service
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    state: restarted

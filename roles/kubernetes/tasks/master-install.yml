@@ -1,0 +1,136 @@
+---
+
+- name: Setup iptables rules for K8S Master machine
+  template:
+    src: "{{ role_path }}/templates/master/iptables/rules.v4.j2"
+    dest: /etc/iptables/rules.v4
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    backup: yes
+  notify: Restart firewall and docker service
+
+- meta: flush_handlers
+
+- name: Create kubernetes log directory
+  file:
+    path: {{ kubernetes_log_dir_path }}
+    state: directory
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    recurse: yes
+
+- name: Generate kubeadm token
+  shell: kubeadm token generate
+  register: kubeadmTokenGenerateResult
+
+- name: Setup kubeadm-config file
+  template:
+    src: "{{ role_path }}/templates/master/kubernetes/kubeadm-config.yml.j2"
+    dest: /etc/kubernetes/kubeadm-config.yml
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0644
+  vars:
+    kubernetes_kubeadm_token: "{{ kubeadmTokenGenerateResult.stdout }}"
+
+- name: Running preflight checks
+  command: kubeadm init --config /etc/kubernetes/kubeadm-config.yml phase preflight
+  register: preflightChecks
+
+- name: Validating if node should be initialized as MASTER
+  debug:
+    msg:
+      - "************"
+      - "*** INFO ***"
+      - "************"
+      - "It seems this machine has been already initialized as MASTER, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
+      - "kubeadm reset -f"
+  when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1 or preflightChecks.stdout.find('/var/lib/etcd is not empty') != -1 
+
+- name: Setup kubernetes master
+  command: kubeadm init --config /etc/kubernetes/kubeadm-config.yml
+  register: kubeadmInitResult
+  ignore_errors: yes
+  when: preflightChecks is succeeded 
+
+- name: Write kubeadm init logs
+  block:
+    - name: Write kubeadm init stdout result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-init.log"
+        content: "{{ kubeadmInitResult.stdout_lines | join('\n') }}"
+      when: kubeadmInitResult.stdout_lines is defined
+    - name: Write kubeadm init stderr result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-init-error.log"
+        content: "{{ kubeadmInitResult.stderr_lines | join('\n') }}"
+      when: kubeadmInitResult.stderr_lines is defined
+
+- name: Check if play can continue
+  fail: 
+    msg:
+      - "**********************"
+      - "*** Error detected ***"
+      - "**********************"
+      - "Kubernetes master setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
+  when: kubeadmInitResult is failed
+
+- name: Generate kubeadm join command
+  block:
+    - name: List existing kubeadm tokens
+      shell: "kubeadm token list | awk 'NR>1{print $1}'"
+      register: kubeadmTokenList
+    - name: Delete previous kubeadm tokens
+      command: "kubeadm token delete {{ item }}"
+      with_items:
+        - "{{ kubeadmTokenList.stdout_lines }}"
+    - name: Create new kubeadm token
+      command: "kubeadm token create --print-join-command --ttl {{ kubernetes_kubeadm_token_ttl }}"
+      register: kubeadmTokenCreateResult
+    - name: Write kubeadm join command fact
+      template:
+        src: "{{ role_path }}/templates/master/facts/kubeadm_join.fact"
+        dest: /etc/ansible/facts.d/
+        group: "{{ system_group }}"
+        owner: "{{ system_user }}"
+        mode: 0755
+      vars:
+        kubeadm_join_cmd: "{{ kubeadmTokenCreateResult.stdout | trim }}"
+    - name: Update facts
+      setup:
+
+- name: Create /root/.kube directory
+  file:
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    path: /root/.kube
+    recurse: yes
+    state: directory
+
+- name: Setup kubeconfig for user
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0644
+    backup: yes
+
+- name: Validating server startup
+  wait_for:
+    delay: 60
+    timeout: 900
+    host: 127.0.0.1
+    port: "{{ kubernetes_master_bind_port }}"
+    state: started
+    msg: 'Server is not ready yet !!'
+
+- name: Setup kubectl autocompletion
+  shell: "kubectl completion bash > /etc/bash_completion.d/kubectl"
+  changed_when: false 
+  
+- name: Setup pod network
+  shell: kubectl apply -f "{{ kubernetes_pod_netowrk_url }}$(kubectl version | base64 | tr -d '\n')"

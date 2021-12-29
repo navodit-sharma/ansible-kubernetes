@@ -1,0 +1,13 @@
+---
+
+- name: Kubernetes minion installation
+  hosts: minion
+  remote_user: root
+  become: yes
+  any_errors_fatal: true
+  tags:
+    - k8s
+    - k8s-only
+    - k8s-minion
+  roles:
+    - { role: kubernetes, node_type: minion, task_type: install }

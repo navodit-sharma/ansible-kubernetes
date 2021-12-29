@@ -1,0 +1,72 @@
+
+global
+	log /dev/log	local0
+	log /dev/log	local1 notice
+	chroot /var/lib/haproxy
+	stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+	stats timeout {{ haprx_global_stats_timeout }}
+	user {{ haprx_haproxy_user }}
+	group {{ haprx_haproxy_group }}
+	daemon
+
+	# Default SSL material locations
+	ca-base /etc/ssl/certs
+	crt-base /etc/ssl/private
+
+	ssl-default-bind-ciphers {{ haprx_global_ssl_default_bind_ciphers }}
+	ssl-default-bind-options {{ haprx_global_ssl_default_bind_options }} 
+    tune.ssl.default-dh-param 2048
+
+defaults
+	log                     {{ haprx_defaults_log }}
+	mode                    {{ haprx_defaults_mode }}
+	option                  httplog
+	option                  dontlognull
+	option                  forwardfor       except 127.0.0.0/8
+	option                  http-server-close
+	option                  redispatch
+	retries                 {{ haprx_defaults_retries }}
+	timeout queue           {{ haprx_defaults_timeout_queue }}
+	timeout connect         {{ haprx_defaults_timeout_connect }}
+	timeout check           {{ haprx_defaults_timeout_check }}
+	timeout server          {{ haprx_defaults_timeout_server }}
+	timeout server-fin      {{ haprx_defaults_timeout_server_fin }}
+	timeout client          {{ haprx_defaults_timeout_client }}
+	timeout client-fin      {{ haprx_defaults_timeout_client_fin }}
+	timeout http-request    {{ haprx_defaults_timeout_http_request }}
+	timeout http-keep-alive {{ haprx_defaults_timeout_http_keep_alive }}
+	timeout tarpit          {{ haprx_defaults_timeout_tarpit }}
+	timeout tunnel          {{ haprx_defaults_timeout_tunnel }}
+	maxconn                 {{ haprx_defaults_maxconn }}
+
+	errorfile 400 /etc/haproxy/errors/400.http
+	errorfile 403 /etc/haproxy/errors/403.http
+	errorfile 408 /etc/haproxy/errors/408.http
+	errorfile 500 /etc/haproxy/errors/500.http
+	errorfile 502 /etc/haproxy/errors/502.http
+	errorfile 503 /etc/haproxy/errors/503.http
+	errorfile 504 /etc/haproxy/errors/504.http
+
+{% if haprx_basic_auth_enabled == 'true' %}
+# Basic Auth
+userlist {{ haprx_basic_auth_userlist }}
+    user {{ haprx_basic_auth_user }} insecure-password {{ haprx_basic_auth_password }}
+{% endif %}
+
+listen stats
+        bind 0.0.0.0:8080
+        stats {{ haprx_listen_stats_status }}
+        stats uri /
+        stats realm Haproxy\ Statistics
+        stats auth {{ haprx_basic_auth_user }}:{{ haprx_basic_auth_password }}
+
+# Frontend - Dummy
+frontend http
+    bind *:80
+    mode http
+    option http-keep-alive
+    use_backend bad-request
+
+# Backend - Dummy
+backend bad-request
+    mode http

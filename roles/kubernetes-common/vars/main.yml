@@ -1,0 +1,6 @@
+---
+
+kubernetes_apt_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+kubernetes_deb_url: https://apt.kubernetes.io/ 
+kubernetes_deb_distro: kubernetes-xenial

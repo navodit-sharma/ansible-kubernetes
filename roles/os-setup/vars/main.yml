@@ -1,0 +1,9 @@
+---
+
+var_sysctls:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: net.ipv4.conf.all.rp_filter
+    value: 0
+  - key: net.ipv4.icmp_echo_ignore_broadcasts
+    value: 0

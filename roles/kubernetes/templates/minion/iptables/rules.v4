@@ -1,0 +1,34 @@
+*filter
+:INPUT ACCEPT [3:236]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [72:18389]
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
+
+# kubelet
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 10250 -j ACCEPT
+
+# Kube-proxy
+-A INPUT -i {{ network_interface }} -p tcp --match multiport --dports 30000:32767 -j ACCEPT
+
+# Weave (SDN)
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 6783 -j ACCEPT
+-A INPUT -i {{ network_interface }} -p udp --match multiport --dports 6783:6784 -j ACCEPT
+
+# Node exporter
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 9100 -j ACCEPT
+
+# Kube-state-metrics
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 8080 -j ACCEPT
+
+-A INPUT -s 224.0.0.0/4 -j ACCEPT
+-A INPUT -i {{ network_interface }} -j REJECT --reject-with icmp-host-prohibited
+
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -d 224.0.0.0/4 -j ACCEPT
+
+-A FORWARD -s 224.0.0.0/4 -d 224.0.0.0/4 -j ACCEPT
+COMMIT

@@ -1,0 +1,57 @@
+---
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: rook-cephfs
+  namespace: {{ rook_k8s_namespace }}
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: {{ rook_cfs_metapool_replica_size }}
+  dataPools:
+    - failureDomain: host
+      replicated:
+        size: {{ rook_cfs_datapool_replica_size }}
+  preservePoolsOnDelete: true
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: {{ rook_node_affinity_label_key }}
+              operator: In
+              values:
+              - {{ rook_node_affinity_label_value }}
+      tolerations:
+      - operator: Exists
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - rook-ceph-mds
+          topologyKey: kubernetes.io/hostname
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rook-ceph-mds
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+    resources:
+      limits:
+        cpu: "{{ rook_mds_resource_limit_cpu }}"
+        memory: "{{ rook_mds_resource_limit_memory }}"
+      requests:
+        cpu: "{{ rook_mds_resource_request_cpu }}"
+        memory: "{{ rook_mds_resource_request_memory }}"
+    priorityClassName: {{ rook_k8s_priority_class_name }}
