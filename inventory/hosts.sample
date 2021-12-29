@@ -35,17 +35,5 @@ valpaas26.valamis.local # k8s minion VM
 [database]
 valpaas27.valamis.local # Database VM
 
-[elasticsearch]
-valpaas28.valamis.local # Monitor VM
-
-[kibana]
-valpaas28.valamis.local # Monitor VM
-
-[prometheus]
-valpaas28.valamis.local # Monitor VM
-
-[grafana]
-valpaas28.valamis.local # Monitor VM
-
 [loadbalancer]
 valpaas01.valamis.local

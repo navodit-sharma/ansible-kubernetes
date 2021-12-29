@@ -14,7 +14,7 @@
 
 - name: Create kubernetes log directory
   file:
-    path: {{ kubernetes_log_dir_path }}
+    path: "{{ kubernetes_log_dir_path }}"
     state: directory
     group: "{{ system_group }}"
     owner: "{{ system_user }}"
@@ -47,13 +47,13 @@
       - "************"
       - "It seems this machine has been already initialized as MASTER, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
       - "kubeadm reset -f"
-  when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1 or preflightChecks.stdout.find('/var/lib/etcd is not empty') != -1 
+  when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1 or preflightChecks.stdout.find('/var/lib/etcd is not empty') != -1
 
 - name: Setup kubernetes master
   command: kubeadm init --config /etc/kubernetes/kubeadm-config.yml
   register: kubeadmInitResult
   ignore_errors: yes
-  when: preflightChecks is succeeded 
+  when: preflightChecks is succeeded
 
 - name: Write kubeadm init logs
   block:
@@ -69,7 +69,7 @@
       when: kubeadmInitResult.stderr_lines is defined
 
 - name: Check if play can continue
-  fail: 
+  fail:
     msg:
       - "**********************"
       - "*** Error detected ***"
@@ -130,7 +130,7 @@
 
 - name: Setup kubectl autocompletion
   shell: "kubectl completion bash > /etc/bash_completion.d/kubectl"
-  changed_when: false 
-  
+  changed_when: false
+
 - name: Setup pod network
   shell: kubectl apply -f "{{ kubernetes_pod_netowrk_url }}$(kubectl version | base64 | tr -d '\n')"
