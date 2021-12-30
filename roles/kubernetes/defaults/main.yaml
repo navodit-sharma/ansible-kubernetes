@@ -1,0 +1,6 @@
+---
+
+network_interface: eth0
+kubernetes_cluster_name: valamisdemo
+kubernetes_log_dir_path: /var/log/kubernetes
+kubernetes_dns_name: "{{ kubernetes_cluster_name }}.local"

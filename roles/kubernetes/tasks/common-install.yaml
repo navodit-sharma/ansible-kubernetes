@@ -1,0 +1,80 @@
+---
+
+- name: Install dependencies for Kubernetes
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - bash-completion
+
+- name: Add apt signing key
+  apt_key:
+    url: "{{ kubernetes_apt_key_url }}"
+    state: present
+
+- name: Add apt repository
+  apt_repository:
+    repo: deb {{ kubernetes_deb_url }} {{ kubernetes_deb_distro }} main
+    state: present
+
+- name: Create /etc/cni/net.d directory
+  file:
+    path: /etc/cni/net.d
+    state: directory
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    recurse: no
+
+- name: Create /etc/bash_completion.d directory
+  file:
+    path: /etc/bash_completion.d
+    state: directory
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    recurse: no
+
+- name: Install kubernetes common packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubeadm={{ kubernetes_version }}"
+      - "kubelet={{ kubernetes_version }}"
+      - "kubectl={{ kubernetes_version }}"
+      - "kubernetes-cni={{ kubernetes_cni_version }}"
+  notify: Restart kubelet.service
+
+- name: Version lock kubernetes common packages
+  command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
+  changed_when: false
+
+- name: Add kubelet configuration
+  copy:
+    backup: yes
+    dest: /etc/default/kubelet
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0644
+    src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
+  notify: Restart kubelet.service
+
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Execute handlers
+  meta: flush_handlers

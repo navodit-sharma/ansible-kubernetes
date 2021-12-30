@@ -1,6 +1,0 @@
----
-
-kubernetes_pod_netowrk_url: https://cloud.weave.works/k8s/net?k8s-version=
-kubernetes_master_bind_port: 6443
-kubernetes_setup_status_file: /etc/kubernetes/k8s-setup.status
-kubernetes_kubeadm_token_ttl: 24h0m0s

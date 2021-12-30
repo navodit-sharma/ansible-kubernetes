@@ -1,0 +1,183 @@
+
+- name: Gathering package facts
+  package_facts:
+    manager: apt
+
+- name: Check installed kubernetes version
+  shell: kubectl version --short | grep Server | awk '{print $3}'
+  changed_when: false
+  register: installedKubernetesVersion
+
+- name: Stop execution if API-SERVER is not reachable
+  fail:
+    msg:
+      - "**********************"
+      - "*** Error detected ***"
+      - "**********************"
+      - "An error has been detected, it seems that KUBE-APISERVER is not reachable. Kubernetes cluster should be in healthy state to perform upgrade."
+      - "Halting execution, please check state of kubernetes cluster."
+  when: installedKubernetesVersion is failed
+
+- name: Displaying installed vs desired version of kubernetes components
+  debug:
+    msg:
+      - "**** Installed versions ****"
+      - "Kubeadm === {{ ansible_facts.packages.kubeadm.0.version | regex_replace('^(.*)-.*', '\\1') }}"
+      - "Kubernetes === {{ installedKubernetesVersion.stdout | regex_replace('^v(.*)', '\\1') }}"
+      - "Kubelet === {{ ansible_facts.packages.kubelet.0.version | regex_replace('^(.*)-.*', '\\1') }}"
+      - .
+      - .
+      - .
+      - .
+      - .
+      - .
+      - "**** Desired versions ****"
+      - "Kubeadm === {{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }}"
+      - "Kubernetes === {{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }}"
+      - "Kubelet === {{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }}"
+
+- name: Determining if upgrade can continue
+  block:
+    - name: Stopping execution as already a newer version is installed
+      fail:
+        msg:
+          - "**********************"
+          - "*** Error detected ***"
+          - "**********************"
+          - "Already a newer version ({{ ansible_facts.packages.kubeadm.0.version }}) is installed. Requested version ({{ kubernetes_version }}) won't be installed. Stopping execution."
+      when: "not ansible_facts.packages.kubeadm.0.version is version(kubernetes_version, 'le')"
+    - name: Proceeding towards upgrade of kubernetes
+      debug:
+        msg:
+          - "Kubeadm's currently INSTALLED version is either OLDER or EQUAL to the DESIRED version, upgrade can be performed. Starting upgrade..."
+          - .
+          - .
+          - .
+          - .
+          - .
+          - .
+          - "kubeadm package version [installed] == {{ ansible_facts.packages.kubeadm.0.version }}"
+          - "Kubeadm package version [desired] == {{ kubernetes_version }}"
+      when: "ansible_facts.packages.kubeadm.0.version is version(kubernetes_version, 'le')"
+
+- name: Create kubernetes upgrade log directory
+  file:
+    path: "{{ kubernetes_log_dir_path }}/upgrade"
+    state: directory
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0755
+    recurse: no
+
+- name: Setting kubeadm configs file
+  block:
+    - name: Generating kubeadm token
+      shell: kubeadm token generate
+      register: kubeadmToken
+    - name: Setting kubeadm-config file
+      template:
+        src: "{{ role_path }}/templates/master/kubernetes/kubeadm-config.yaml.j2"
+        dest: /etc/kubernetes/kubeadm-config.yaml
+        group: "{{ system_group }}"
+        owner: "{{ system_user }}"
+        mode: 0644
+        backup: yes
+      vars:
+        kubernetes_kubeadm_token: "{{ kubeadmToken.stdout }}"
+
+- name: Unholding kubeadm package
+  command: apt-mark unhold kubeadm kubernetes-cni
+  changed_when: false
+
+- name: Installing kubeadm
+  apt:
+    name: "kubeadm={{ kubernetes_version }}"
+    state: present
+    update_cache: yes
+
+- name: Holding kubeadm package
+  command: apt-mark hold kubeadm kubernetes-cni
+  changed_when: false
+
+- name: Draining master node
+  command: "kubectl drain {{ hostvars[inventory_hostname].ansible_nodename }} --delete-local-data --ignore-daemonsets"
+  changed_when: false
+
+- name: Planning kubeadm upgrade
+  command: "kubeadm upgrade plan v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml"
+  changed_when: false
+  register: upgradePlan
+  ignore_errors: yes
+
+- name: Applying upgrade
+  command: "kubeadm upgrade apply v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml -f -y"
+  changed_when: false
+  register: upgradeStatus
+  when: (upgradePlan.stdout.find('You can now apply the upgrade') != -1) or (upgradePlan.stdout.find('Awesome, you\'re up-to-date') != -1)
+  ignore_errors: yes
+
+- name: Writing upgrade logs to file
+  block:
+    - name: Writing upgrade planning stdout logs to file
+      copy:
+        dest: /var/log/kubernetes/upgrade/upgrade-plan-info.log
+        content: "{{ upgradePlan.stdout_lines | join('\n') }}"
+      when: upgradePlan.stdout_lines is defined
+    - name: Writing upgrade planning stderr logs to file
+      copy:
+        dest: /var/log/kubernetes/upgrade/upgrade-plan-error.log
+        content: "{{ upgradePlan.stderr_lines | join('\n') }}"
+      when: upgradePlan.stderr_lines is defined
+    - name: Writing upgrade stdout logs to file
+      copy:
+        dest: /var/log/kubernetes/upgrade/upgrade-apply-info.log
+        content: "{{ upgradeStatus.stdout_lines | join('\n') }}"
+      when: upgradeStatus.stdout_lines is defined
+    - name: Writing upgrade stderr logs to file
+      copy:
+        dest: /var/log/kubernetes/upgrade/upgrade-apply-error.log
+        content: "{{ upgradeStatus.stderr_lines | join('\n') }}"
+      when: upgradeStatus.stderr_lines is defined
+
+- name: Checking if paly can continue
+  block:
+    - name: Halting play if upgrade planning failed in previous step
+      fail:
+        msg:
+          - "**********************"
+          - "*** Error detected ***"
+          - "**********************"
+          - "Upgrade planning step has failed, Please check the logs for more information."
+      when: upgradePlan is failed
+    - name: Halting play if upgrade failed in previous step
+      fail:
+        msg:
+          - "**********************"
+          - "*** Error detected ***"
+          - "**********************"
+          - "Upgrade has failed, please check logs for more details about failure."
+          - "System will try to do an automatic rollback but it is advised to check if all services are up with correct versions."
+      when: upgradeStatus is failed or upgradeStatus.stdout.find('SUCCESS! Your cluster was upgraded') == -1
+
+- name: Validating server startup
+  wait_for:
+    delay: 60
+    timeout: 900
+    host: 127.0.0.1
+    port: "{{ kubernetes_master_bind_port }}"
+    state: started
+    msg: "Server is not ready yet on port {{ kubernetes_master_bind_port }} !!"
+
+- name: Upgrading pod-network provider
+  shell: kubectl apply -f "{{ kubernetes_pod_netowrk_url }}$(kubectl version | base64 | tr -d '\n')"
+  changed_when: false
+
+- name: Making master node schedulable
+  command: "kubectl uncordon {{ hostvars[inventory_hostname].ansible_nodename }}"
+  changed_when: false
+
+- name: "Upgrading kubectl and kubelet"
+  include_tasks: "{{ role_path }}/tasks/common-upgrade.yaml"
+
+- name: Execute handlers
+  meta: flush_handlers
