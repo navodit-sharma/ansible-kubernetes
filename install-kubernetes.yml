@@ -1,9 +1,0 @@
----
-
-- import_playbook: kubernetes-master.yml
-- import_playbook: kubernetes-minion.yml
-- import_playbook: kubernetes-addons.yml
-- import_playbook: rook-ceph-client.yml
-- import_playbook: rook-ceph-server.yml
-- import_playbook: postgresql.yml
-- import_playbook: haproxy.yml

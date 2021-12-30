@@ -1,0 +1,30 @@
+---
+
+- name: Installing haproxy
+  apt:
+    name: haproxy={{ haprx_version }}
+    state: present
+    update_cache: yes
+
+- name: Configuring haproxy
+  template:
+    src: "{{ role_path }}/templates/haproxy.cfg.j2"
+    dest: /etc/haproxy/haproxy.cfg
+    group: "{{ haprx_system_group }}"
+    owner: "{{ haprx_system_user }}"
+    mode: 0644
+    backup: yes
+    force: no
+  notify: Restart haproxy.service
+
+- name: Ensuring haproxy.service is enabled and started
+  systemd:
+    name: haproxy
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Execute handlers
+  meta: flush_handlers

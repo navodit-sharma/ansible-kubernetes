@@ -1,0 +1,42 @@
+
+- name: Remove apt versionlock from kubernetes common packages
+  command: apt-mark unhold kubelet kubectl kubernetes-cni
+  changed_when: false
+
+- name: Updating kubernetes common packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubelet={{ kubernetes_version }}"
+      - "kubectl={{ kubernetes_version }}"
+      - "kubernetes-cni={{ kubernetes_cni_version }}"
+  notify: Restart kubelet.service
+
+- name: Add apt versionlock on kubernetes common packages
+  command: apt-mark hold kubelet kubectl kubernetes-cni
+  changed_when: false
+
+- name: Setting default configs for kubelet service
+  copy:
+    backup: yes
+    dest: /etc/default/kubelet
+    group: "{{ system_group }}"
+    owner: "{{ system_user }}"
+    mode: 0644
+    src: "{{ role_path }}/../kubernetes-common/templates/kubelet/etc-default-kubelet"
+  notify: Restart kubelet.service
+
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Execute handlers
+  meta: flush_handlers

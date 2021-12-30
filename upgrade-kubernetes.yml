@@ -1,5 +1,0 @@
----
-
-- import_playbook: kubernetes-master-upgrade.yml
-- import_playbook: kubernetes-minion-upgrade.yml
-

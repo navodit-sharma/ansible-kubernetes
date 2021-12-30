@@ -1,7 +1,7 @@
 *filter
-:INPUT ACCEPT [0:0]
+:INPUT ACCEPT [3:236]
 :FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [10:1768]
+:OUTPUT ACCEPT [72:18389]
 
 -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 -A INPUT -p icmp -j ACCEPT
@@ -11,14 +11,11 @@
 # SSH
 -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
 
-# Kubernetes API
--A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 6443 -j ACCEPT
+# kubelet
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 10250 -j ACCEPT
 
-# ETCD
--A INPUT -i {{ network_interface }} -p tcp --match multiport --dports 2379:2380 -j ACCEPT
-
-# kubelet, kube-scheduler, kube-controller-manager
--A INPUT -i {{ network_interface }} -p tcp --match multiport --dports 10250:10252 -j ACCEPT
+# Kube-proxy
+-A INPUT -i {{ network_interface }} -p tcp --match multiport --dports 30000:32767 -j ACCEPT
 
 # Weave (SDN)
 -A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 6783 -j ACCEPT
@@ -26,6 +23,9 @@
 
 # Node exporter
 -A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 9100 -j ACCEPT
+
+# Kube-state-metrics
+-A INPUT -i {{ network_interface }} -p tcp -m tcp --dport 8080 -j ACCEPT
 
 # Multicast
 -A INPUT -s 224.0.0.0/4 -j ACCEPT

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cat <<EOF
-{
-    "cmd": "{{ kubeadm_join_cmd }}"
-}
-EOF

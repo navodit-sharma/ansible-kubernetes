@@ -1,0 +1,8 @@
+---
+
+- import_playbook: playbooks/kubernetes-master.yaml
+- import_playbook: playbooks/kubernetes-minion.yaml
+- import_playbook: playbooks/rook-ceph-client.yaml
+- import_playbook: playbooks/rook-ceph-server.yaml
+- import_playbook: playbooks/postgresql.yaml
+- import_playbook: playbooks/haproxy.yaml

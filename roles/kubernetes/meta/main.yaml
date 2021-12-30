@@ -1,0 +1,5 @@
+---
+
+dependencies:
+  - { role: os-setup, tags: os }
+  - { role: docker, tags: docker }

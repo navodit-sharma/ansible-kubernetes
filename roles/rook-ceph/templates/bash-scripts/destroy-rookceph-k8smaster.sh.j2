@@ -8,8 +8,8 @@
 # Delete all rook-ceph resources deployed in Kubernetes cluster
 /usr/bin/kubectl -n {{ rook_k8s_namespace }} delete cephfilesystem,cephblockpool,cephcluster --all
 pushd "{{ rook_server_config_dir_path }}" >/dev/null 2>&1
-/usr/bin/kubectl -n {{ rook_k8s_namespace }} delete -f operator.yml
-/usr/bin/kubectl -n {{ rook_k8s_namespace }} delete -f common.yml
+/usr/bin/kubectl -n {{ rook_k8s_namespace }} delete -f operator.yaml
+/usr/bin/kubectl -n {{ rook_k8s_namespace }} delete -f common.yaml
 /usr/bin/kubectl delete sc rook-ceph-block rook-ceph-filesystem
 rm -vf {{ rook_server_setup_status_file }}
 rm -rvf "{{ rook_server_log_dir_path }}/*"
