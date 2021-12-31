@@ -1,11 +1,11 @@
 
 # FQDNs of all VMs
-valpaas23.valamis.local # k8s master VM
-valpaas24.valamis.local # k8s minion VM
-valpaas25.valamis.local # k8s minion VM
-valpaas26.valamis.local # k8s minion VM
-valpaas27.valamis.local # Postgresql VM
-valpaas01.valamis.local # Haproxy VM
+valpaas23.valamis.local                   # k8s master VM
+valpaas24.valamis.local                   # k8s minion VM
+valpaas25.valamis.local                   # k8s minion VM
+valpaas26.valamis.local                   # k8s minion VM
+valpaas27.valamis.local                   # Postgresql VM
+valpaas01.valamis.local                   # Haproxy VM
 
 [sandbox]
 valpaas23.valamis.local
