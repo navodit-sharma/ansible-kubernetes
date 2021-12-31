@@ -31,12 +31,12 @@
     force: no
 
 - name: Mounting storage for persisting cluster's state on all client nodes
-  mount:
-    dump: 0
+  ansible.posix.mount:
+    dump: "0"
     fstab: "/etc/fstab"
     fstype: ext4
     opts: defaults
-    passno: 0
+    passno: "0"
     path: "{{ rook_data_dir_host_path }}"
     src: "{{ rook_data_dir_host_disk }}"
     state: mounted
