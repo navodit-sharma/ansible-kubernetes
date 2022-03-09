@@ -1,13 +1,86 @@
 ---
 
-- name: Apt update
+# Update and upgrade
+- name: Apt update & upgrade
   apt:
     upgrade: yes
     update_cache: yes
+    autoclean: yes
+    autoremove: yes
 
-# Enable automated security updates
-# Disable all other automatic updates
+# Timezone and time sync
+- name: Configure timezone
+  command: timedatectl set-timezone {{ timezone }}
+  changed_when: false
+  notify: Restart ntp and cron service
 
+- name: Disable timesyncd service
+  systemd:
+    name: systemd-timesyncd
+    daemon_reload: no
+    enabled: no
+    masked: yes
+    state: stopped
+    no_block: no
+
+- name: Disable chrony service
+  systemd:
+    name: chrony
+    daemon_reload: no
+    enabled: no
+    masked: yes
+    state: stopped
+    no_block: no
+
+- name: Install NTP client service package
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - ntp
+      - ntpdate
+  notify: Restart ntp and cron service
+
+- name: Configure NTP client service
+  template:
+    src: "{{ role_path }}/templates/ntp.conf.j2"
+    dest: /etc/ntp.conf
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Restart ntp and cron service
+
+- name: Ensure NTP service is enabled and started
+  systemd:
+    name: ntp
+    daemon_reload: no
+    enabled: yes
+    masked: no
+    state: restarted
+    no_block: no
+
+# Disable IPV6
+- name: Disable IPV6 - sysctl config
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ os_sysctl_ipv6_disable }}"
+
+- name: Disable IPV6 module in GRUB config
+  template:
+    src: "{{ role_path }}/templates/grub.j2"
+    dest: /etc/default/grub
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Update grub
+
+# Installing necessary tools
 - name: Install base packages
   apt:
     name: "{{ packages }}"
@@ -16,77 +89,58 @@
     packages:
       - net-tools
       - dnsutils
-      - libnss-resolve
+      - unattended-upgrades
 
+# Enable automated security updates
+- name: Install unattended-upgrades package
+  apt:
+    name: unattended-upgrades
+    state: present
+
+- name: Configure unattended-upgrades
+  template:
+    src: "{{ role_path }}/templates/50unattended-upgrades.j2"
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+
+- name: Configure unattended-upgrades frequency
+  template:
+    src: "{{ role_path }}/templates/20auto-upgrades.j2"
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+
+# Remove unnecessary services
 - name: Uninstall network-manager package
   apt:
-    name: network-manager
-    state: absent
-
-# - name: Uninstall resolvconf package
-#   apt:
-#     name: resolvconf
-#     state: absent
-
-# - name: Creating resolv.conf symbolic link
-#   file:
-#     src: /run/systemd/resolve/resolv.conf
-#     dest: /etc/resolv.conf
-#     owner: "{{ system_user }}"
-#     group: "{{ system_group }}"
-#     state: link
-#     force: yes
-#   changed_when: false
-
-- name: Disable UFW
-  ufw:
-    state: disabled
-
-- name: Install iptables
-  apt:
     name: "{{ packages }}"
-    state: present
-    update_cache: yes
+    state: absent
   vars:
     packages:
-      - iptables-persistent
-      - netfilter-persistent
+      - network-manager
+      - resolvconf
+      - chrony
+      - libnss-resolve
 
-- name: Start and Enable netfilter-persistent service
-  systemd:
-    name: netfilter-persistent
-    daemon_reload: no
-    enabled: yes
-    masked: no
-    state: started
-    no_block: no
-
-- name: Setup br-netfilter module
-  template:
-    backup: yes
-    dest: /etc/modules-load.d/
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
-    mode: 0755
-    src: "{{role_path}}/templates/modules-load/bridge.conf"
-
-- name: Load BrNetfilter module
-  modprobe:
-    name: br_netfilter
-    state: present
-
-- name: Sysctls configurations
+# Enabling ipforwarding and broadcasting
+- name: Sysctl - enable ip forwarding and broadcasting
   sysctl:
     name: "{{ item.key }}"
     reload: yes
     state: present
     value: "{{ item.value }}"
-  with_items: "{{ var_sysctls }}"
+  with_items: "{{ os_sysctl_ipv4_forward_broadcast }}"
 
+# Setup system-journal service
 - name: Create /var/log/journal directory
   file:
     group: systemd-journal
-    owner: "{{ system_user }}"
+    owner: "{{ os_system_user }}"
     path: /var/log/journal
     recurse: yes
     state: directory
@@ -105,18 +159,6 @@
     state: started
     no_block: no
 
-- name: Disable SWAP since kubernetes can't work with swap enabled
-  block:
-    - name: Disable SWAP
-      shell: |
-        swapoff -a
-      changed_when: false
-    - name: Disable SWAP in fstab
-      replace:
-        path: /etc/fstab
-        regexp: '^(.+?\sswap\s+sw\s+.*)$'
-        replace: '# \1'
-      changed_when: false
-
+# Flush handlers
 - name: Execute handlers
   meta: flush_handlers

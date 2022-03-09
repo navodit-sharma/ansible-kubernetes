@@ -1,4 +1,27 @@
 ---
 
-system_user: root
-system_group: root
+os_system_user: root
+os_system_group: root
+
+os_timezone: "Europe/Helsinki"
+os_ntp_server_list:
+  - 0.fi.pool.ntp.org
+  - 1.fi.pool.ntp.org
+  - 2.fi.pool.ntp.org
+  - 3.fi.pool.ntp.org
+
+os_sysctl_ipv6_disable:
+  - key: net.ipv6.conf.all.disable_ipv6
+    value: 1
+  - key: net.ipv6.conf.default.disable_ipv6
+    value: 1
+  - key: net.ipv6.conf.lo.disable_ipv6
+    value: 1
+
+os_sysctl_ipv4_forward_broadcast:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: net.ipv4.conf.all.rp_filter
+    value: 0
+  - key: net.ipv4.icmp_echo_ignore_broadcasts
+    value: 0
