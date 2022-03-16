@@ -4,16 +4,27 @@ kubernetes_pod_netowrk_url: https://cloud.weave.works/k8s/net?k8s-version=
 kubernetes_master_bind_port: 6443
 kubernetes_setup_status_file: /etc/kubernetes/k8s-setup.status
 kubernetes_kubeadm_token_ttl: 24h0m0s
-##
-system_user: root
-system_group: root
+
+kubernetes_system_user: root
+kubernetes_system_group: root
 
 kubernetes_version: 1.14.2-00
-kubernetes_cni_version: 0.7.5-00
-##
----
 
 kubernetes_apt_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
 
 kubernetes_deb_url: https://apt.kubernetes.io/
 kubernetes_deb_distro: kubernetes-xenial
+
+kubernetes_sysctl_ipforwarding_broadcasting:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: net.ipv4.conf.all.rp_filter
+    value: 0
+  - key: net.ipv4.icmp_echo_ignore_broadcasts
+    value: 0
+
+kubernetes_sysctl_iptables_bridged_traffic:
+  - key: net.bridge.bridge-nf-call-iptables
+    value: 1
+  - key: net.bridge.bridge-nf-call-ip6tables
+    value: 1

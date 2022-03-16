@@ -17,11 +17,3 @@ os_sysctl_ipv6_disable:
     value: 1
   - key: net.ipv6.conf.lo.disable_ipv6
     value: 1
-
-os_sysctl_ipv4_forward_broadcast:
-  - key: net.ipv4.ip_forward
-    value: 1
-  - key: net.ipv4.conf.all.rp_filter
-    value: 0
-  - key: net.ipv4.icmp_echo_ignore_broadcasts
-    value: 0
