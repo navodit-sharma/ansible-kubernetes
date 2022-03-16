@@ -87,7 +87,7 @@
         packages:
         - "docker-ce={{ docker_ce_version }}"
         - "docker-ce-cli={{ docker_ce_cli_version }}"
-        - "containerd.io={{ docker_containerdio_version }}"
+        - "containerd.io"
       notify: Restart docker.service
     - name: Adding version lock on docker and its dependencies
       command: apt-mark hold docker-ce docker-ce-cli containerd.io
