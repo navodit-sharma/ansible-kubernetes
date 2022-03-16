@@ -13,7 +13,7 @@
     "ipv6": false,
     "iptables": false,
     "ip6tables": false,
-    "selinux-enabled": true,
+    "selinux-enabled": false,
     "ip-forward": true,
     "ip-masq": false
 }
