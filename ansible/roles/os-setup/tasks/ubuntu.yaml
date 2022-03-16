@@ -89,7 +89,6 @@
     packages:
       - net-tools
       - dnsutils
-      - unattended-upgrades
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
@@ -116,7 +115,7 @@
     backup: yes
 
 # Remove unnecessary services
-- name: Uninstall network-manager package
+- name: Uninstall unnecessary package(s)
   apt:
     name: "{{ packages }}"
     state: absent
