@@ -1,5 +1,24 @@
 ---
 
+# Disable IPV6
+- name: Disable IPV6 - sysctl config
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ os_sysctl_ipv6_disable }}"
+
+- name: Disable IPV6 module in GRUB config
+  template:
+    src: "{{ role_path }}/templates/grub.j2"
+    dest: /etc/default/grub
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Update grub
+
 # Update and upgrade
 - name: Apt update & upgrade
   apt:
@@ -61,25 +80,6 @@
     state: restarted
     no_block: no
 
-# Disable IPV6
-- name: Disable IPV6 - sysctl config
-  sysctl:
-    name: "{{ item.key }}"
-    reload: yes
-    state: present
-    value: "{{ item.value }}"
-  with_items: "{{ os_sysctl_ipv6_disable }}"
-
-- name: Disable IPV6 module in GRUB config
-  template:
-    src: "{{ role_path }}/templates/grub.j2"
-    dest: /etc/default/grub
-    group: "{{ os_system_group }}"
-    owner: "{{ os_system_user }}"
-    mode: 0644
-    backup: yes
-  notify: Update grub
-
 # Installing necessary tools
 - name: Install base packages
   apt:
@@ -89,6 +89,13 @@
     packages:
       - net-tools
       - dnsutils
+      - bash-completion
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - gnupg2
+      - software-properties-common
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
@@ -125,15 +132,6 @@
       - resolvconf
       - chrony
       - libnss-resolve
-
-# Enabling ipforwarding and broadcasting
-- name: Sysctl - enable ip forwarding and broadcasting
-  sysctl:
-    name: "{{ item.key }}"
-    reload: yes
-    state: present
-    value: "{{ item.value }}"
-  with_items: "{{ os_sysctl_ipv4_forward_broadcast }}"
 
 # Setup system-journal service
 - name: Create /var/log/journal directory
