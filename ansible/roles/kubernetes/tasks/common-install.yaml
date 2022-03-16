@@ -1,4 +1,5 @@
 
+# Install general dependency packages
 - name: Install dependencies for Kubernetes
   apt:
     name: "{{ packages }}"
@@ -6,39 +7,104 @@
     update_cache: yes
   vars:
     packages:
+      - curl
       - apt-transport-https
       - ca-certificates
-      - curl
-      - bash-completion
+      - gnupg-agent
+      - gnupg2
+      - software-properties-common
 
-- name: Add apt signing key
-  apt_key:
-    url: "{{ kubernetes_apt_key_url }}"
+# Remove iptables packages if installed
+- name: Uninstall iptables
+  apt:
+    name: "{{ packages }}"
+    state: absent
+    update_cache: yes
+  vars:
+    packages:
+      - iptables-persistent
+      - netfilter-persistent
+
+# Let iptables see bridged traffic
+- name: Setup br-netfilter module
+  template:
+    backup: no
+    dest: /etc/modules-load.d/k8s.conf
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/modules/bridge.conf.j2"
+
+- name: Load BrNetfilter module
+  modprobe:
+    name: br_netfilter
     state: present
+
+- name: Sysctl - enable iptables to see bridged traffic
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ kubernetes_sysctl_iptables_bridged_traffic }}"
+
+# Enable ipforwarding and broadcasting
+- name: Sysctl - enable ip forwarding and broadcasting
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ kubernetes_sysctl_ipforwarding_broadcasting }}"
+
+# Disable swap on k8s VMs
+- name: Disable SWAP since kubernetes can't work with swap enabled
+  block:
+    - name: Disable SWAP
+      shell: |
+        swapoff -a
+      changed_when: false
+    - name: Disable SWAP in fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^(.+?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+      changed_when: false
+
+# Add repository
+- name: Add apt signing key
+  shell: "curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg {{ kubernetes_apt_key_url }}"
 
 - name: Add apt repository
-  apt_repository:
-    repo: deb {{ kubernetes_deb_url }} {{ kubernetes_deb_distro }} main
-    state: present
+  template:
+    backup: no
+    dest: /etc/apt/sources.list.d/apt_kubernetes_io.list
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
+    mode: 0644
+    src: "{{role_path}}/templates/apt/apt_kubernetes_io.list.j2"
 
+# Kubernetes cni config directory create
 - name: Create /etc/cni/net.d directory
   file:
     path: /etc/cni/net.d
     state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0755
     recurse: no
 
+# Kubernetes bash completion directory create
 - name: Create /etc/bash_completion.d directory
   file:
     path: /etc/bash_completion.d
     state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0755
     recurse: no
 
+# Install kubernetes common packages and add version lock
 - name: Install kubernetes common packages
   apt:
     name: "{{ packages }}"
@@ -49,19 +115,20 @@
       - "kubeadm={{ kubernetes_version }}"
       - "kubelet={{ kubernetes_version }}"
       - "kubectl={{ kubernetes_version }}"
-      - "kubernetes-cni={{ kubernetes_cni_version }}"
+      - "kubernetes-cni"
   notify: Restart kubelet.service
 
 - name: Version lock kubernetes common packages
   command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
   changed_when: false
 
+# ??? Kubelet config
 - name: Add kubelet configuration
   copy:
     backup: yes
     dest: /etc/default/kubelet
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0644
     src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
   notify: Restart kubelet.service
