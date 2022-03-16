@@ -10,7 +10,6 @@ docker_ce_cli_version: 5:19.03.11~3-0~ubuntu-bionic
 
 # Kubernetes
 kubernetes_version: 1.17.9-00
-kubernetes_cni_version: 0.8.6-00
 kubernetes_cluster_name: valpaas
 
 # Rook (Storage)
