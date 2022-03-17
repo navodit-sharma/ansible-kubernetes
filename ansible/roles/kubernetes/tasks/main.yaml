@@ -1,7 +1,7 @@
 ---
 
-- name: "Kubernetes common {{ task_type }}"
-  include_tasks: "{{ role_path }}/tasks/common-{{ task_type }}.yaml"
+- name: "Kubernetes common"
+  include_tasks: "{{ role_path }}/tasks/common.yaml"
   when: task_type == 'install'
 
 - name: "Kubernetes {{ node_type }} {{ task_type }}"

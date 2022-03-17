@@ -1,4 +1,9 @@
 
+# Gather package facts
+- name: Gather Package facts
+  package_facts:
+    manager: apt
+
 # Install general dependency packages
 - name: Install dependencies for Kubernetes
   apt:
@@ -14,16 +19,17 @@
       - gnupg2
       - software-properties-common
 
-# Remove iptables packages if installed
-- name: Uninstall iptables
+# Remove iptables tool packages if installed
+- name: Uninstall iptables-persistent
   apt:
-    name: "{{ packages }}"
+    name: iptables-persistent
     state: absent
-    update_cache: yes
-  vars:
-    packages:
-      - iptables-persistent
-      - netfilter-persistent
+  when: '"iptables-persistent" in ansible_facts.packages'
+- name: Uninstall netfilter-persistent
+  apt:
+    name: netfilter-persistent
+    state: absent
+  when: '"netfilter-persistent" in ansible_facts.packages'
 
 # Let iptables see bridged traffic
 - name: Setup br-netfilter module
@@ -74,6 +80,7 @@
 # Add repository
 - name: Add apt signing key
   shell: "curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg {{ kubernetes_apt_key_url }}"
+  changed_when: false
 
 - name: Add apt repository
   template:
@@ -84,63 +91,16 @@
     mode: 0644
     src: "{{role_path}}/templates/apt/apt_kubernetes_io.list.j2"
 
-# Kubernetes cni config directory create
-- name: Create /etc/cni/net.d directory
+# Create required directories for kubernetes setup
+- name: Create required kubernetes config directories
   file:
-    path: /etc/cni/net.d
+    path: "{{ item }}"
     state: directory
     group: "{{ kubernetes_system_group }}"
     owner: "{{ kubernetes_system_user }}"
     mode: 0755
-    recurse: no
-
-# Kubernetes bash completion directory create
-- name: Create /etc/bash_completion.d directory
-  file:
-    path: /etc/bash_completion.d
-    state: directory
-    group: "{{ kubernetes_system_group }}"
-    owner: "{{ kubernetes_system_user }}"
-    mode: 0755
-    recurse: no
-
-# Install kubernetes common packages and add version lock
-- name: Install kubernetes common packages
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: yes
-  vars:
-    packages:
-      - "kubeadm={{ kubernetes_version }}"
-      - "kubelet={{ kubernetes_version }}"
-      - "kubectl={{ kubernetes_version }}"
-      - "kubernetes-cni"
-  notify: Restart kubelet.service
-
-- name: Version lock kubernetes common packages
-  command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
-  changed_when: false
-
-# ??? Kubelet config
-- name: Add kubelet configuration
-  copy:
-    backup: yes
-    dest: /etc/default/kubelet
-    group: "{{ kubernetes_system_group }}"
-    owner: "{{ kubernetes_system_user }}"
-    mode: 0644
-    src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
-  notify: Restart kubelet.service
-
-- name: Ensure kubelet.service is enabled and started
-  systemd:
-    name: kubelet
-    daemon-reload: yes
-    enabled: yes
-    masked: no
-    state: started
-    no_block: no
-
-- name: Execute handlers
-  meta: flush_handlers
+    recurse: yes
+  with_items:
+    - "{{ kubernetes_log_dir_path }}"
+    - "/etc/cni/net.d"
+    - "/etc/bash_completion.d"

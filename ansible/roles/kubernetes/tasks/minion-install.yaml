@@ -1,48 +1,83 @@
----
 
-- name: Setup iptables rules for K8S Minion machine
-  template:
-    src: "{{ role_path }}/templates/minion/iptables/rules.v4"
-    dest: /etc/iptables/rules.v4.j2
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
-    mode: 0755
-    backup: yes
-  notify: Restart firewall and docker service
+# Unhold kubernetes packages if required
+# conntrack cri-tools kubectl kubelet kubernetes-cni socat
+- name: Unhold kubernetes packages
+  command: apt-mark unhold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubernetes-cni
+  changed_when: false
+  when: 'item|string in ansible_facts.packages'
+
+# Install kubernetes common packages and add version lock
+- name: Install kubernetes packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubeadm={{ kubernetes_version }}"
+      - "kubelet={{ kubernetes_version }}"
+      - "kubernetes-cni"
+  notify: Restart kubelet.service
+
+- name: Version lock kubernetes packages
+  command: apt-mark hold kubeadm kubelet kubernetes-cni
+  changed_when: false
+
+# # Configure kubelet
+# - name: Add kubelet configuration
+#   copy:
+#     backup: yes
+#     dest: /etc/default/kubelet
+#     group: "{{ kubernetes_system_group }}"
+#     owner: "{{ kubernetes_system_user }}"
+#     mode: 0644
+#     src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
+#   notify: Restart kubelet.service
+
+# Start kubelet
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
 
 - name: Execute handlers
   meta: flush_handlers
 
-- name: Create kubernetes log directory
-  file:
-    path: "{{ kubernetes_log_dir_path }}"
-    state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
-    mode: 0755
-    recurse: yes
+# Get kubeadm token from master node
+- name: Generate kubeadm join command
+  shell: kubeadm token create --print-join-command
+  register: kubeadmJoinCommand
+  delegate_to: "{{ groups['master'][0] }}"
+  changed_when: false
 
+# Preflight checks
 - name: Running preflight checks
-  command: "{{ hostvars[groups['master'][0]].ansible_facts.ansible_local.kubeadm_join.cmd | regex_replace('join', 'join phase preflight') }}"
-  # ?? delegate kubeadm join
+  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }}"
   register: preflightChecks
-  ignore_errors: yes
+  ignore_errors: true
 
-- name: Validating if node should be initialized as MASTER
+- name: Validating if node was previously initialized
   debug:
     msg:
       - "************"
       - "*** INFO ***"
       - "************"
-      - "It seems this machine has been already initialized as MASTER, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
+      - "It seems this machine has been already initialized, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
       - "kubeadm reset -f"
   when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1
 
 - name: Setup kubernetes minion
-  command: "{{ hostvars[groups['master'][0]].ansible_facts.ansible_local.kubeadm_join.cmd }}"
-  # ?? Use delegated join command
+  command: "{{ kubeadmJoinCommand.stdout }}"
   register: kubeadmJoinResult
-  ignore_errors: yes
+  ignore_errors: true
   when: preflightChecks is succeeded
 
 - name: Write kubeadm join logs

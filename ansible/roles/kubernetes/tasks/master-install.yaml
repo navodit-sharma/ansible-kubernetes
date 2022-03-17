@@ -1,26 +1,57 @@
----
 
-- name: Setup iptables rules for K8S Master machine
-  template:
-    src: "{{ role_path }}/templates/master/iptables/rules.v4.j2"
-    dest: /etc/iptables/rules.v4
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
-    mode: 0755
-    backup: yes
-  notify: Restart firewall and docker service
+# Unhold kubernetes packages if required
+# conntrack cri-tools kubectl kubelet kubernetes-cni socat
+- name: Unhold kubernetes packages
+  command: apt-mark unhold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl
+    - kubernetes-cni
+  changed_when: false
+  when: 'item|string in ansible_facts.packages'
+
+# Install kubernetes common packages and add version lock
+- name: Install kubernetes packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubeadm={{ kubernetes_version }}"
+      - "kubelet={{ kubernetes_version }}"
+      - "kubectl={{ kubernetes_version }}"
+      - "kubernetes-cni"
+  notify: Restart kubelet.service
+
+- name: Version lock kubernetes packages
+  command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
+  changed_when: false
+
+# # Configure kubelet
+# - name: Add kubelet configuration
+#   copy:
+#     backup: yes
+#     dest: /etc/default/kubelet
+#     group: "{{ kubernetes_system_group }}"
+#     owner: "{{ kubernetes_system_user }}"
+#     mode: 0644
+#     src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
+#   notify: Restart kubelet.service
+
+# Start kubelet
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
 
 - name: Execute handlers
   meta: flush_handlers
-
-- name: Create kubernetes log directory
-  file:
-    path: "{{ kubernetes_log_dir_path }}"
-    state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
-    mode: 0755
-    recurse: yes
 
 - name: Generate kubeadm token
   shell: kubeadm token generate
@@ -30,16 +61,16 @@
   template:
     src: "{{ role_path }}/templates/master/kubernetes/kubeadm-config.yaml.j2"
     dest: /etc/kubernetes/kubeadm-config.yaml
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0644
   vars:
     kubernetes_kubeadm_token: "{{ kubeadmTokenGenerateResult.stdout }}"
 
 - name: Running preflight checks
-  command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight
+  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight"
   register: preflightChecks
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Evaluating preflight checks
   debug:
@@ -54,7 +85,7 @@
 - name: Setup kubernetes master
   command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
   register: kubeadmInitResult
-  ignore_errors: yes
+  ignore_errors: true
   when: preflightChecks is succeeded
 
 - name: Write kubeadm init logs
@@ -79,47 +110,21 @@
       - "Kubernetes master setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
   when: kubeadmInitResult is failed
 
-# - name: Generate kubeadm join command
-#   block:
-#     - name: List existing kubeadm tokens
-#       shell: "kubeadm token list | awk 'NR>1{print $1}'"
-#       register: kubeadmTokenList
-#     - name: Delete previous kubeadm tokens
-#       command: "kubeadm token delete {{ item }}"
-#       with_items:
-#         - "{{ kubeadmTokenList.stdout_lines }}"
-#     - name: Create new kubeadm token
-#       command: "kubeadm token create --print-join-command --ttl {{ kubernetes_kubeadm_token_ttl }}"
-#       register: kubeadmTokenCreateResult
-#     - name: Write kubeadm join command fact
-#       template:
-#         src: "{{ role_path }}/templates/master/facts/kubeadm_join.fact"
-#         dest: /etc/ansible/facts.d/
-#         group: "{{ system_group }}"
-#         owner: "{{ system_user }}"
-#         mode: 0755
-#       vars:
-#         kubeadm_join_cmd: "{{ kubeadmTokenCreateResult.stdout | trim }}"
-#     - name: Update facts
-#       setup:
-#       ??
-
 - name: Add kubectl configuration directory
   file:
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     path: /root/.kube
     recurse: yes
     state: directory
-    # ??
 
 - name: Add kubectl configuration
   copy:
     src: /etc/kubernetes/admin.conf
     dest: /root/.kube/config
     remote_src: yes
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0640
     backup: yes
 

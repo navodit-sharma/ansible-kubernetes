@@ -1,8 +1,4 @@
 
-- name: Gathering package facts
-  package_facts:
-    manager: apt
-
 - name: Check installed kubernetes version
   shell: kubectl version --short | grep Server | awk '{print $3}'
   changed_when: false
@@ -107,14 +103,14 @@
   command: "kubeadm upgrade plan v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml"
   changed_when: false
   register: upgradePlan
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Applying upgrade
   command: "kubeadm upgrade apply v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml -f -y"
   changed_when: false
   register: upgradeStatus
   when: (upgradePlan.stdout.find('You can now apply the upgrade') != -1) or (upgradePlan.stdout.find('Awesome, you\'re up-to-date') != -1)
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Writing upgrade logs to file
   block:
@@ -176,8 +172,51 @@
   command: "kubectl uncordon {{ hostvars[inventory_hostname].ansible_nodename }}"
   changed_when: false
 
-- name: "Upgrading kubectl and kubelet"
-  include_tasks: "{{ role_path }}/tasks/common-upgrade.yaml"
+# Unhold kubelet and kubectl
+- name: Unhold kubernetes packages
+  command: apt-mark unhold "{{ item }}"
+  with_items:
+    - kubelet
+    - kubectl
+  changed_when: false
+  when: 'item|string in ansible_facts.packages'
+
+# Install kubernetes common packages and add version lock
+- name: Install kubernetes packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubelet={{ kubernetes_version }}"
+      - "kubectl={{ kubernetes_version }}"
+  notify: Restart kubelet.service
+
+- name: Version lock kubernetes packages
+  command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
+  changed_when: false
+
+# # Configure kubelet
+# - name: Add kubelet configuration
+#   copy:
+#     backup: yes
+#     dest: /etc/default/kubelet
+#     group: "{{ kubernetes_system_group }}"
+#     owner: "{{ kubernetes_system_user }}"
+#     mode: 0644
+#     src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
+#   notify: Restart kubelet.service
+
+# Start kubelet
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
 
 - name: Execute handlers
   meta: flush_handlers
