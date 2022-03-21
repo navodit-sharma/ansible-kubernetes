@@ -81,9 +81,16 @@
       vars:
         kubernetes_kubeadm_token: "{{ kubeadmToken.stdout }}"
 
-- name: Unholding kubeadm package
-  command: apt-mark unhold kubeadm kubernetes-cni
+- name: Unhold kubernetes packages
+  command: apt-mark unhold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
   changed_when: false
+  when: 'item|string in ansible_facts.packages'
 
 - name: Installing kubeadm
   apt:
@@ -91,9 +98,16 @@
     state: present
     update_cache: yes
 
-- name: Holding kubeadm package
-  command: apt-mark hold kubeadm kubernetes-cni
+- name: Hold kubernetes packages
+  command: apt-mark hold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
   changed_when: false
+  when: 'item|string in ansible_facts.packages'
 
 - name: Draining master node
   command: "kubectl drain {{ hostvars[inventory_hostname].ansible_nodename }} --delete-local-data --ignore-daemonsets"
@@ -111,6 +125,7 @@
   register: upgradeStatus
   when: (upgradePlan.stdout.find('You can now apply the upgrade') != -1) or (upgradePlan.stdout.find('Awesome, you\'re up-to-date') != -1)
   ignore_errors: true
+  notify: Restart kubelet.service
 
 - name: Writing upgrade logs to file
   block:
@@ -178,11 +193,15 @@
   with_items:
     - kubelet
     - kubectl
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
   changed_when: false
   when: 'item|string in ansible_facts.packages'
 
-# Install kubernetes common packages and add version lock
-- name: Install kubernetes packages
+# Install kubernetes packages and add version lock
+- name: Install kubelet package
   apt:
     name: "{{ packages }}"
     state: present
@@ -193,20 +212,18 @@
       - "kubectl={{ kubernetes_version }}"
   notify: Restart kubelet.service
 
-- name: Version lock kubernetes packages
-  command: apt-mark hold kubeadm kubelet kubectl kubernetes-cni
+- name: Hold kubernetes packages
+  command: apt-mark hold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
   changed_when: false
-
-# # Configure kubelet
-# - name: Add kubelet configuration
-#   copy:
-#     backup: yes
-#     dest: /etc/default/kubelet
-#     group: "{{ kubernetes_system_group }}"
-#     owner: "{{ kubernetes_system_user }}"
-#     mode: 0644
-#     src: "{{ role_path }}/templates/kubelet/etc-default-kubelet"
-#   notify: Restart kubelet.service
+  when: 'item|string in ansible_facts.packages'
 
 # Start kubelet
 - name: Ensure kubelet.service is enabled and started

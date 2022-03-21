@@ -1,1 +1,0 @@
-KUBELET_EXTRA_ARGS="--v=2 --image-pull-progress-deadline=60m0s"
