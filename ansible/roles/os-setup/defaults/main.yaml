@@ -3,6 +3,8 @@
 os_system_user: root
 os_system_group: root
 
+os_apt_update_and_upgrade: true
+
 os_timezone: "Europe/Helsinki"
 os_ntp_server_list:
   - 0.fi.pool.ntp.org

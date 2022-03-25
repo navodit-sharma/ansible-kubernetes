@@ -3,10 +3,10 @@
 - name: Rook-ceph server setup
   hosts: master
   remote_user: root
-  become: yes
+  become: true
   any_errors_fatal: true
   tags:
     - storage
     - storage-serveronly
   roles:
-    - { role: rook-ceph, install_type: server }
+    - { role: ../roles/rook-ceph, install_type: server }

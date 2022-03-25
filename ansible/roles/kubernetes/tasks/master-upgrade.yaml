@@ -60,8 +60,8 @@
   file:
     path: "{{ kubernetes_log_dir_path }}/upgrade"
     state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0755
     recurse: no
 
@@ -74,8 +74,8 @@
       template:
         src: "{{ role_path }}/templates/master/kubernetes/kubeadm-config.yaml.j2"
         dest: /etc/kubernetes/kubeadm-config.yaml
-        group: "{{ system_group }}"
-        owner: "{{ system_user }}"
+        group: "{{ kubernetes_system_group }}"
+        owner: "{{ kubernetes_system_user }}"
         mode: 0644
         backup: yes
       vars:

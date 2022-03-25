@@ -74,7 +74,7 @@
       - "************"
       - "It seems this machine has been already initialized, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
       - "kubeadm reset -f"
-  when: preflightChecks.stdout.find('ERROR FileAvailable') != -1 or preflightChecks.stdout.find('ERROR Port') != -1
+  when: preflightChecks.stderr.find('ERROR FileAvailable') != -1 or preflightChecks.stderr.find('ERROR Port') != -1
 
 - name: Setup kubernetes minion
   command: "{{ kubeadmJoinCommand.stdout }}"
@@ -95,7 +95,7 @@
         content: "{{ kubeadmJoinResult.stderr_lines | join('\n') }}"
       when: kubeadmJoinResult.stderr_lines is defined
 
-- name: Skip if play can continue
+- name: Stop if minion setup failed
   fail:
     msg:
       - "**********************"
@@ -103,6 +103,11 @@
       - "**********************"
       - "Kubernetes minion setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
   when: kubeadmJoinResult is failed
+
+- name: Add worker label to node
+  command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/worker= --overwrite=true"
+  changed_when: false
+  delegate_to: "{{ groups['master'][0] }}"
 
 - name: Execute handlers
   meta: flush_handlers

@@ -3,10 +3,10 @@
 - name: Kubernetes master upgrade
   hosts: master
   remote_user: root
-  become: yes
+  become: true
   any_errors_fatal: true
   tags:
     - k8s-upgrade
     - k8s-master-upgrade
   roles:
-    - { role: kubernetes, node_type: master, task_type: upgrade }
+    - { role: ../roles/kubernetes, node_type: master, task_type: upgrade }

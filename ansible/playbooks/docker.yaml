@@ -1,0 +1,11 @@
+---
+
+- name: Install docker
+  hosts: master,minion
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - docker
+  roles:
+    - ../roles/docker

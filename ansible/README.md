@@ -47,6 +47,32 @@ Please read information provided within following link --> https://dev.azure.com
 ansible-playbook -i ./hosts install-kubernetes.yaml
 ```
 
+## List all available ansible tags
+```
+ansible-playbook -i inventory/sandbox ./install-kubernetes.yaml --list-tags
+```
+**Output :**
+```
+playbook: install-kubernetes.yaml
+
+  play #1 (master): Kubernetes master installation	TAGS: [k8s-install,k8s,k8s-master-install]
+      TASK TAGS: [docker, k8s, k8s-install, k8s-master-install, os]
+
+  play #2 (minion): Kubernetes minion installation	TAGS: [k8s-minion-install,k8s-install,k8s]
+      TASK TAGS: [docker, k8s, k8s-install, k8s-minion-install, os]
+
+  play #3 (minion): Rook-ceph client setup	TAGS: [storage-clientonly,storage]
+      TASK TAGS: [storage, storage-clientonly]
+
+  play #4 (master): Rook-ceph server setup	TAGS: [storage-serveronly,storage]
+      TASK TAGS: [storage, storage-serveronly]
+
+  play #5 (database): database	TAGS: [database,db]
+      TASK TAGS: [client, configure, database, db, dependencies, packages, server, service]
+
+  play #6 (loadbalancer): Loadbalancer installation	TAGS: [haproxy,lb]
+      TASK TAGS: [haproxy, lb]
+```
 ## Upgrading Kubernetes
 **NOTE :**
 - Upgrade is only expected to work when initial installation of kubernetes was done with this same ansible playbook.

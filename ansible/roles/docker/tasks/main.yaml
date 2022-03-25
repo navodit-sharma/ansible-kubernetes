@@ -42,8 +42,8 @@
   copy:
     backup: yes
     dest: /tmp/
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
     mode: 0644
     src: "{{ role_path }}/files/verifyFingerprint.sh"
 
@@ -97,8 +97,8 @@
   template:
     src: "{{ role_path }}/templates/systemctl/override.conf"
     dest: /etc/systemd/system/docker.service.d/
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
     mode: 0644
     backup: yes
   notify: Restart docker.service
@@ -107,8 +107,8 @@
   copy:
     src: "{{ role_path }}/templates/docker/daemon.json"
     dest: /etc/docker/
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
     mode: 0644
     backup: yes
   notify: Restart docker.service

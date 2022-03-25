@@ -3,9 +3,10 @@
 - name: Loadbalancer installation
   hosts: loadbalancer
   remote_user: root
-  become: yes
+  become: true
   any_errors_fatal: true
   tags:
     - lb
-  roles:
     - haproxy
+  roles:
+    - ../roles/haproxy

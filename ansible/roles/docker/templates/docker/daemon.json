@@ -12,7 +12,6 @@
     "debug": false,
     "ipv6": false,
     "iptables": false,
-    "ip6tables": false,
     "selinux-enabled": false,
     "ip-forward": true,
     "ip-masq": false

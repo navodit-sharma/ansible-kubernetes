@@ -1,0 +1,13 @@
+---
+
+- name: Kubernetes master installation
+  hosts: master
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - k8s
+    - k8s-install
+    - k8s-master-install
+  roles:
+    - { role: ../roles/kubernetes, node_type: master, task_type: install }

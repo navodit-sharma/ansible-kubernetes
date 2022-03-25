@@ -6,7 +6,7 @@
     - db
     - database
   roles:
-    - role: postgresql
+    - role: ../roles/postgresql
       db_name: demo
       db_user: demo
       db_password: demo

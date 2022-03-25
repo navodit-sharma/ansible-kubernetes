@@ -43,8 +43,8 @@
   file:
     path: "{{ kubernetes_log_dir_path }}/upgrade"
     state: directory
-    group: "{{ system_group }}"
-    owner: "{{ system_user }}"
+    group: "{{ kubernetes_system_group }}"
+    owner: "{{ kubernetes_system_user }}"
     mode: 0755
     recurse: no
 
@@ -95,7 +95,7 @@
         dest: /var/log/kubernetes/upgrade/upgrade-node-info.log
         content: "{{ upgradeStatus.stdout_lines | join('\n') }}"
       when: upgradeStatus.stdout_lines is defined
-    - name: Writing upgrade plan's stderr logs to file
+    - name: Writing upgrade stderr logs to file
       copy:
         dest: /var/log/kubernetes/upgrade/upgrade-node-error.log
         content: "{{ upgradeStatus.stderr_lines | join('\n') }}"
@@ -157,6 +157,11 @@
     masked: no
     state: started
     no_block: no
+
+- name: Add worker label to node
+  command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/worker= --overwrite=true"
+  changed_when: false
+  delegate_to: "{{ groups['master'][0] }}"
 
 - name: Making minion node schedulable
   command: "kubectl uncordon {{ hostvars[inventory_hostname].ansible_nodename }}"

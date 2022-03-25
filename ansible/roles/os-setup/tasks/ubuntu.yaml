@@ -26,14 +26,24 @@
     update_cache: yes
     autoclean: yes
     autoremove: yes
+  when: os_apt_update_and_upgrade is true
+
+# Gather package facts
+- name: Gather Package facts post upgrade
+  package_facts:
+    manager: apt
 
 # Timezone and time sync
 - name: Configure timezone
-  command: timedatectl set-timezone {{ timezone }}
+  command: "timedatectl set-timezone {{ os_timezone }}"
   changed_when: false
   notify: Restart ntp and cron service
 
-- name: Disable timesyncd service
+- name: Turn off timesyncd service
+  command: "timedatectl set-ntp off"
+  changed_when: false
+
+- name: Disable systemd-timesyncd service
   systemd:
     name: systemd-timesyncd
     daemon_reload: no
@@ -41,6 +51,7 @@
     masked: yes
     state: stopped
     no_block: no
+  when: "'systemd-timesyncd' in ansible_facts.packages"
 
 - name: Disable chrony service
   systemd:
@@ -50,6 +61,7 @@
     masked: yes
     state: stopped
     no_block: no
+  when: "'chrony' in ansible_facts.packages"
 
 - name: Install NTP client service package
   apt:
@@ -77,7 +89,7 @@
     daemon_reload: no
     enabled: yes
     masked: no
-    state: restarted
+    state: started
     no_block: no
 
 # Installing necessary tools
