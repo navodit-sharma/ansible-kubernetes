@@ -10,6 +10,16 @@ kubernetes_system_group: root
 kubernetes_apt_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
 kubernetes_deb_url: https://apt.kubernetes.io/
 kubernetes_deb_distro: kubernetes-xenial
+kubernetes_cri_socket_path: "/var/run/dockershim.sock"
+# kubernetes_cri_path: "/run/containerd/containerd.sock"
+kubernetes_kernel_modules:
+  - br_netfilter
+  - overlay
+  - ip_vs
+  - ip_vs_rr
+  - ip_vs_wrr
+  - ip_vs_sh
+  - nf_conntrack
 kubernetes_sysctl_ipforwarding_broadcasting:
   - key: net.ipv4.ip_forward
     value: 1

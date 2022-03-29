@@ -62,7 +62,7 @@
 
 # Preflight checks
 - name: Running preflight checks
-  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }}"
+  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }} --cri-socket {{ kubernetes_cri_socket_path }}"
   register: preflightChecks
   ignore_errors: true
 
@@ -77,7 +77,7 @@
   when: preflightChecks.stderr.find('ERROR FileAvailable') != -1 or preflightChecks.stderr.find('ERROR Port') != -1
 
 - name: Setup kubernetes minion
-  command: "{{ kubeadmJoinCommand.stdout }}"
+  command: "{{ kubeadmJoinCommand.stdout }} --cri-socket {{ kubernetes_cri_socket_path }}"
   register: kubeadmJoinResult
   ignore_errors: true
   when: preflightChecks is succeeded

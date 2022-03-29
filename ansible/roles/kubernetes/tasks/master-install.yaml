@@ -70,7 +70,7 @@
     kubernetes_kubeadm_token: "{{ kubeadmTokenGenerateResult.stdout }}"
 
 - name: Running preflight checks
-  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight"
+  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight --cri-socket {{ kubernetes_cri_socket_path }}"
   register: preflightChecks
   ignore_errors: true
   no_log: true
@@ -86,7 +86,7 @@
   when: preflightChecks.stderr.find('ERROR FileAvailable') != -1 or preflightChecks.stderr.find('ERROR Port') != -1 or preflightChecks.stderr.find('/var/lib/etcd is not empty') != -1
 
 - name: Setup kubernetes master
-  command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
+  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --cri-socket {{ kubernetes_cri_socket_path }}"
   register: kubeadmInitResult
   ignore_errors: true
   when: preflightChecks is succeeded

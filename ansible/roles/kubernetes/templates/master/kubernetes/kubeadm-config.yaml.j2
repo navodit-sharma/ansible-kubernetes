@@ -15,7 +15,7 @@ localAPIEndpoint:
   bindPort: 6443
 nodeRegistration:
   name: "{{ hostvars[inventory_hostname].ansible_nodename }}"
-  criSocket: /var/run/dockershim.sock
+  criSocket: "{{ kubernetes_cri_socket_path }}"
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master

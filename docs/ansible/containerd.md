@@ -1,0 +1,9 @@
+- apt install libseccomp2 -y
+- wget https://github.com/containerd/containerd/releases/download/v1.6.1/cri-containerd-cni-1.6.1-linux-amd64.tar.gz
+- tar --no-overwrite-dir -C / -xzf cri-containerd-cni-1.6.1-linux-amd64.tar.gz
+- systemctl daemon-reload
+- systemctl enable --now containerd
+- mkdir /etc/containerd
+- containerd config default > /etc/containerd/config.toml
+- sed -i -e 's/systemd_cgroup = false/systemd_cgroup = true/g' /etc/containerd/config.toml
+- systemctl restart containerd
