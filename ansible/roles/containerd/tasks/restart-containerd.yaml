@@ -1,0 +1,15 @@
+---
+- name: Restart containerd.service
+  systemd:
+    name: docker
+    daemon-reload: yes
+    state: restarted
+
+- name: Allowing enough time for containerd to start
+  wait_for:
+    delay: 100
+    timeout: 150
+    host: 127.0.0.1
+    port: "{{ containerd_service_port }}"
+    state: started
+    msg: "Containerd is not ready yet on port {{ containerd_service_port }} !!"

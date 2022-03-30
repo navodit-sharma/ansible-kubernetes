@@ -1,0 +1,33 @@
+---
+
+- name: Setup containerd storage
+  filesystem:
+    fstype: xfs
+    dev: "{{ containerd_storage }}"
+    force: no
+    opts: "-n ftype=1"
+
+- name: Mount containerd storage
+  mount:
+    dump: '0'
+    fstab: /etc/fstab
+    fstype: xfs
+    opts: defaults
+    passno: '0'
+    path: "{{ containerd_data_dir }}"
+    src: "{{ containerd_storage }}"
+    state: mounted
+
+- name: Install dependencies for containerd
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - gnupg2
+      - software-properties-common

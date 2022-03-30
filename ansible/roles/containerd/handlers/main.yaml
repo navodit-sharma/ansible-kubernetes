@@ -1,0 +1,4 @@
+---
+
+- name: Restart containerd.service
+  include_tasks: tasks/restart-containerd.yaml

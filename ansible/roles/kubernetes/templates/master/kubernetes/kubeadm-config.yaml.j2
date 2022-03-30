@@ -72,14 +72,11 @@ tlsMinVersion: "{{ kubernetes_tls_min_version }}"
 resolvConf: "{{ kubernetes_resolvconf_path }}"
 rotateCertificates: {{ kubernetes_kubelet_rotate_certs }}
 evictionHard:
-    memory.available:  "{{ kubernetes_hard_eviction_memory }}"
-kubeReserved:
-    cpu: "{{ kubernetes_kube_reserved_cpu }}"
-    memory: "{{ kubernetes_kube_reserved_memory }}"
-    ephemeral-storage: "{{ kubernetes_kube_reserved_ephimeral_storage }}"
-systemReserved:
-    cpu: "{{ kubernetes_system_reserved_cpu }}"
-    memory: "{{ kubernetes_system_reserved_memory }}"
+    memory.available: "{{ kubernetes_hard_eviction_memory_available }}"
+    nodefs.available: "{{ kubernetes_hard_eviction_nodefs_available }}"
+    nodefs.inodesFree: "{{ kubernetes_hard_eviction_nodefs_inodesfree }}"
+    imagefs.available: "{{ kubernetes_hard_eviction_imagefs_available }}"
+enforceNodeAllocatable: "{{ kubernetes_enforce_node_allocatable }}"
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration

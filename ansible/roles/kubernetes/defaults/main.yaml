@@ -49,11 +49,10 @@ kubernetes_tls_cipher_suits: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_
 kubernetes_tls_min_version: "VersionTLS12"
 kubernetes_resolvconf_path: "/run/systemd/resolve/resolv.conf"
 kubernetes_kubelet_rotate_certs: true
-kubernetes_hard_eviction_memory: "200Mi"
-kubernetes_kube_reserved_cpu: "200m"
-kubernetes_kube_reserved_memory: "500Mi"
-kubernetes_kube_reserved_ephimeral_storage: "2Gi"
-kubernetes_system_reserved_cpu: "200m"
-kubernetes_system_reserved_memory: "500Mi"
+kubernetes_hard_eviction_memory_available: "100Mi"
+kubernetes_hard_eviction_nodefs_available: "10%"
+kubernetes_hard_eviction_nodefs_inodesfree: "5%"
+kubernetes_hard_eviction_imagefs_available: "15%"
+kubernetes_enforce_node_allocatable: [pods]
 kubernetes_kubeproxy_mode: "ipvs"
 kubernetes_kubeproxy_ipvs_scheduler: ""

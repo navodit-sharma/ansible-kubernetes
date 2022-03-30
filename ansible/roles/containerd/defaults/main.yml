@@ -1,0 +1,6 @@
+containerd_service_port:
+containerd_storage: ""
+containerd_data_dir: "/var/lib/containerd"
+containerd_config_dir: "/etc/containerd"
+containerd_config_file: "{{ containerd_config_dir }}/config.toml"
+containerd_systemd_cgroup_enabled: true
