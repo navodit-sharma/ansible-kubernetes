@@ -3,7 +3,7 @@
 - name: Setup containerd storage
   filesystem:
     fstype: xfs
-    dev: "{{ containerd_storage }}"
+    dev: "{{ containerd_storage_device }}"
     force: no
     opts: "-n ftype=1"
 
@@ -15,7 +15,7 @@
     opts: defaults
     passno: '0'
     path: "{{ containerd_data_dir }}"
-    src: "{{ containerd_storage }}"
+    src: "{{ containerd_storage_device }}"
     state: mounted
 
 - name: Install dependencies for containerd
@@ -26,8 +26,111 @@
   vars:
     packages:
       - curl
+      - lsb-release
       - apt-transport-https
       - ca-certificates
       - gnupg-agent
-      - gnupg2
+      - gnupg
       - software-properties-common
+      - python-apt
+      - python3-apt
+
+- name: Get DEB architecture
+  shell: dpkg --print-architecture
+  register: deb_arch
+
+- name: Add apt signing key to a specific keyring file
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+    state: present
+
+- name: Add apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ deb_arch.stdout }} signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] {{ containerd_deb_url }} {{ hostvars[inventory_hostname][ansible_distribution_release] }} stable"
+    state: present
+    update_cache: yes
+
+- name: Gathering package facts
+  package_facts:
+    manager: apt
+
+- name: Unhold containerd package
+  command: apt-mark unhold containerd.io
+  when: "'containerd.io' in ansible_facts.packages"
+
+- name: Install containerd.io
+  apt:
+    name: containerd
+    state: present
+  notify: Restart containerd.service
+
+- name: Hold containerd package at current version
+  command: apt-mark hold containerd.io
+  changed_when: false
+
+- name: Setup br-netfilter and overlay kernel modules
+  template:
+    backup: no
+    dest: /etc/modules-load.d/containerd.conf
+    group: "{{ containerd_system_group }}"
+    owner: "{{ containerd_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/kernel-modules/containerd.conf.j2"
+
+- name: Load BrNetfilter and overlay kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ containerd_kernel_modules }}"
+
+- name: Sysctl - enable iptables to see bridged traffic
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ containerd_sysctl_iptables_bridged_traffic }}"
+
+- name: Sysctl - enable ip forwarding and broadcasting
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ containerd_sysctl_ipforwarding_broadcasting }}"
+
+- name: Create required containerd config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    group: "{{ containerd_system_group }}"
+    owner: "{{ containerd_system_user }}"
+    mode: 0755
+    recurse: yes
+  with_items:
+    - "{{ containerd_config_dir }}"
+
+- name: Generate containerd config
+  shell: "containerd config default > {{ containerd_config_file }}"
+  changed_when: false
+  notify: Restart containerd.service
+
+- name: Enable systemd cgroup
+  ansible.builtin.replace:
+    path: {{ containerd_config_file }}
+    regexp: 'SystemdCgroup =.*'
+    replace: 'SystemdCgroup = true'
+  notify: Restart containerd.service
+
+- name: Ensuring containerd.service is enabled and started
+  systemd:
+    name: containerd
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Execute handlers
+  meta: flush_handlers
