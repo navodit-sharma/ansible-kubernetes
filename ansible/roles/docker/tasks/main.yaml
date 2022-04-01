@@ -93,6 +93,37 @@
       command: apt-mark hold docker-ce docker-ce-cli containerd.io
       changed_when: false
 
+- name: Setup br-netfilter and overlay kernel modules
+  template:
+    backup: no
+    dest: /etc/modules-load.d/containerd.conf
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/kernel-modules/containerd.conf.j2"
+
+- name: Load BrNetfilter and overlay kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ docker_kernel_modules }}"
+
+- name: Sysctl - enable iptables to see bridged traffic
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ docker_sysctl_iptables_bridged_traffic }}"
+
+- name: Sysctl - enable ip forwarding and broadcasting
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ docker_sysctl_ipforwarding_broadcasting }}"
+
 - name: Patching docker systemd service file
   template:
     src: "{{ role_path }}/templates/systemctl/override.conf"
