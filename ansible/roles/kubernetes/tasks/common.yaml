@@ -31,38 +31,21 @@
     state: absent
   when: '"netfilter-persistent" in ansible_facts.packages'
 
-# Let iptables see bridged traffic and enable other kernel modules required by k8s
-- name: Setup br-netfilter and ipvs kernel modules
+# Enable IPVS kernel module
+- name: Setup ipvs kernel modules
   template:
     backup: no
     dest: /etc/modules-load.d/k8s.conf
     group: "{{ kubernetes_system_group }}"
     owner: "{{ kubernetes_system_user }}"
     mode: 0755
-    src: "{{role_path}}/templates/modules/k8s.conf.j2"
+    src: "{{role_path}}/templates/kernel-modules/k8s.conf.j2"
 
-- name: Load BrNetfilter and ipvs kernel modules
+- name: Load ipvs kernel modules
   modprobe:
     name: "{{ item }}"
     state: present
   with_items: "{{ kubernetes_kernel_modules }}"
-
-- name: Sysctl - enable iptables to see bridged traffic
-  sysctl:
-    name: "{{ item.key }}"
-    reload: yes
-    state: present
-    value: "{{ item.value }}"
-  with_items: "{{ kubernetes_sysctl_iptables_bridged_traffic }}"
-
-# Enable ipforwarding and broadcasting
-- name: Sysctl - enable ip forwarding and broadcasting
-  sysctl:
-    name: "{{ item.key }}"
-    reload: yes
-    state: present
-    value: "{{ item.value }}"
-  with_items: "{{ kubernetes_sysctl_ipforwarding_broadcasting }}"
 
 # Disable swap on k8s VMs
 - name: Disable SWAP since kubernetes can't work with swap enabled

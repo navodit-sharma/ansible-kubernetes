@@ -18,18 +18,6 @@ kubernetes_kernel_modules:
   - ip_vs_wrr
   - ip_vs_sh
   - nf_conntrack
-kubernetes_sysctl_ipforwarding_broadcasting:
-  - key: net.ipv4.ip_forward
-    value: 1
-  - key: net.ipv4.conf.all.rp_filter
-    value: 0
-  - key: net.ipv4.icmp_echo_ignore_broadcasts
-    value: 0
-kubernetes_sysctl_iptables_bridged_traffic:
-  - key: net.bridge.bridge-nf-call-iptables
-    value: 1
-  - key: net.bridge.bridge-nf-call-ip6tables
-    value: 1
 kubernetes_cluster_name: valamisdemo
 kubernetes_log_dir_path: /var/log/kubernetes
 kubernetes_dns_name: "{{ kubernetes_cluster_name }}.local"
