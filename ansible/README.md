@@ -1,6 +1,6 @@
 
 # Introduction
-Ansible project for installing kubernetes on Onprem Ubuntu servers.
+Ansible playbooks for installing **Kubernetes** on **Onprem/Bare-metal Ubuntu** machines.
 
 ## Version matrix
 kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containerd.io
@@ -13,17 +13,15 @@ kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containe
 1.17.9 | 1.17.9-00 | 1.17.9-00 | 1.17.9-00 | 0.8.6-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
 ## Various components
 There are multiple components that can be installed using this playbook altogether or individually. All components are listed below.
-- Kubernetes
-- Rook-ceph storage cluster (Kubernetes required)
-- Helm v2 (Kubernetes required)
-- Postgresql v11
-- Elasticsearch (Part of Centralized logging stack)
-- Kibana (Part of Centralized logging stack)
-- Fluentd (Kubernetes required) (Part of Centralized logging stack)
-- Prometheus (Part of Monitoring stack)
-- Grafana (Part of Monitoring stack)
-- Nginx (Part of Monitoring & Centralized logging stack)
+- Containerd
+- Docker
 - Haproxy
+- Helm v3
+- Kubernetes
+- kubernetes dashboard (Kubernetes required)
+- metrics-server (Kubernetes required)
+- Postgresql v11
+- Rook-ceph storage cluster (Kubernetes required)
 
 ## Pre-requisites
 Please read information provided within following link --> https://dev.azure.com/valamis/KirklandEllis/_wiki/wikis/KirklandEllis.wiki/137/Installation. Important topics are :
@@ -33,6 +31,28 @@ Please read information provided within following link --> https://dev.azure.com
 - Hostnames
 - Service provisioning
 
+## Installing Ansible
+### Install
+```
+apt update -y
+apt install software-properties-common -y
+add-apt-repository --yes --update ppa:ansible/ansible
+apt install ansible=5.4.0-1ppa~focal
+```
+### Check with [ _**ansible version**_ ]
+```
+# sample output
+
+ansible [core 2.12.2]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/root/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /root/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.8.10 (default, Mar 15 2022, 12:22:08) [GCC 9.4.0]
+  jinja version = 2.10.1
+  libyaml = True
+```
 ## Installing Kubernetes
 **NOTE :**
 - Installation of kubernetes using this ansible role is expected to succeed only on fresh set of VMs where kubernetes is not already present.
@@ -115,8 +135,8 @@ ansible-playbook -i ./hosts upgrade-kubernetes.yaml --tags "lb"
 - [x] Haproxy's ansible role
 - [x] Finalizing use of /etc/resolv.conf symbolic link
 - [ ] Automatic update of kubectl client package
-- [ ] Kubectl bash completion
-- [ ] Automatic update of helm client package
+- [x] Kubectl bash completion
+- [x] Automatic update of helm client package
 - [ ] Helm bash completion
 - [ ] Postgresql : ability to add users and roles
 - [ ] Postgresql : Master-slave configuration (possibly with HA features)
