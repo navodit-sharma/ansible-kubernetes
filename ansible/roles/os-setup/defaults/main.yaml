@@ -19,3 +19,5 @@ os_sysctl_ipv6_disable:
     value: 1
   - key: net.ipv6.conf.lo.disable_ipv6
     value: 1
+
+os_snapd_refresh_timer: "mon,thu,00:00"

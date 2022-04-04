@@ -108,6 +108,7 @@
       - gnupg-agent
       - gnupg2
       - software-properties-common
+      - python3-pip
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
@@ -167,6 +168,9 @@
     masked: no
     state: started
     no_block: no
+
+- name: Update snapd refresh timer
+  command: "snap set system refresh.timer={{ os_snapd_refresh_timer }}"
 
 # Flush handlers
 - name: Execute handlers
