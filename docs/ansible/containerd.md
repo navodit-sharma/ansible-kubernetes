@@ -5,5 +5,6 @@
 - systemctl enable --now containerd
 - mkdir /etc/containerd
 - containerd config default > /etc/containerd/config.toml
-- sed -i -e 's/systemd_cgroup = false/systemd_cgroup = true/g' /etc/containerd/config.toml
+- sed -i -e 's/systemd_cgroup =.*/systemd_cgroup = false/g' /etc/containerd/config.toml
+- sed -i -e 's/SystemdCgroup =.*/SystemdCgroup = true/g' /etc/containerd/config.toml
 - systemctl restart containerd
