@@ -1,0 +1,70 @@
+---
+
+## Common
+- name: Install required packages
+  apt:
+    name: python3-pip
+    state: present
+  tags:
+    - helm
+    - metrics-server
+    - kubernetes_dashboard
+    - dashboard
+
+- name: Install PyYAML through pip
+  pip:
+    name: PyYAML
+    state: present
+    path: python3
+  tags:
+    - helm
+    - metrics-server
+    - kubernetes_dashboard
+
+## Helm
+- name: Install helm
+  community.general.snap:
+    name: helm
+    channel: "{{ addon_helm_version }}/stable"
+    classic: yes
+    state: present
+  tags:
+    - helm
+
+## Metrics server
+- name: Install metrics-server
+  kubernetes.core.helm:
+    name: "{{ addon_metric_server_repo_friendly_name }}"
+    repo_url: "{{ addon_metric_server_repo_url }}"
+    chart_ref: "{{ addon_metric_server_chart_ref }}"
+    chart_version: "{{ addon_metric_server_chart_version }}"
+    update_repo_cache: true
+    release_name: "{{ addon_metric_server_release_name }}"
+    release_namespace: "{{ addon_metric_server_release_namespace }}"
+    create_namespace: true
+    history_max: 10
+    atomic: yes
+    release_state: present
+    release_values: []
+    values_files: []
+  tags:
+    - metrics-server
+
+## Kubernetes dashboard
+- name: Install kubernetes dashboard
+  kubernetes.core.helm:
+    name: "{{ addon_kubernetes_dashboard_repo_friendly_name }}"
+    repo_url: "{{ addon_kubernetes_dashboard_repo_url }}"
+    chart_ref: "{{ addon_kubernetes_dashboard_chart_ref }}"
+    chart_version: "{{ addon_kubernetes_dashboard_chart_version }}"
+    update_repo_cache: true
+    release_name: "{{ addon_kubernetes_dashboard_release_name }}"
+    release_namespace: "{{ addon_kubernetes_dashboard_release_namespace }}"
+    create_namespace: true
+    history_max: 10
+    atomic: yes
+    release_state: present
+    release_values: []
+    values_files: []
+  tags:
+    - kubernetes_dashboard

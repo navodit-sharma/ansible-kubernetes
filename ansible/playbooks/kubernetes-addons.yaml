@@ -1,0 +1,11 @@
+---
+
+- name: Kubernetes addons installation
+  hosts: master
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - kubernetes-addons
+  roles:
+    - { role: ../roles/kubernetes-addons }
