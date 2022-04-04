@@ -51,10 +51,6 @@
     state: present
     update_cache: yes
 
-- name: Gathering package facts
-  package_facts:
-    manager: apt
-
 - name: Unhold containerd package
   command: apt-mark unhold containerd.io
   when: "'containerd.io' in ansible_facts.packages"
