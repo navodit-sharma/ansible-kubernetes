@@ -12,10 +12,10 @@
     - dashboard
 
 - name: Install PyYAML through pip
-  pip:
+  ansible.builtin.pip:
     name: PyYAML
     state: present
-    path: python3
+    executable: pip3
   tags:
     - helm
     - metrics-server
