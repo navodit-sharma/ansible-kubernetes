@@ -1,19 +1,27 @@
 ---
+# Common
+addons_system_group: root
+addons_system_user: root
+
 # Helm
 addon_helm_version: 3.7
 
 # Metrics server
-addon_metric_server_repo_friendly_name: "kubernetes-metrics-server"
+addon_metric_server_enabled: true
+addon_metric_server_repo_name: "metrics-server"
 addon_metric_server_repo_url: "https://kubernetes-sigs.github.io/metrics-server/"
-addon_metric_server_chart_ref: "{{ addon_metric_server_repo_friendly_name }}/metrics-server"
-addon_metric_server_chart_version: "3.8.2"
+addon_metric_server_chart_ref: "{{ addon_metric_server_repo_name }}/metrics-server"
+addon_metric_server_chart_version: "3.7.0"
 addon_metric_server_release_name: "metrics-server"
 addon_metric_server_release_namespace: "kube-system"
+addon_metric_server_service_monitor_enabled: false
 
 # Kubernetes dashboard
-addon_kubernetes_dashboard_repo_friendly_name: "kubernetes-dashboard"
+addon_kubernetes_dashboard_enabled: true
+addon_kubernetes_dashboard_repo_name: "kubernetes-dashboard"
 addon_kubernetes_dashboard_repo_url: "https://kubernetes.github.io/dashboard/"
-addon_kubernetes_dashboard_chart_ref: "{{ addon_kubernetes_dashboard_repo_friendly_name }}/kubernetes-dashboard"
+addon_kubernetes_dashboard_chart_ref: "{{ addon_kubernetes_dashboard_repo_name }}/kubernetes-dashboard"
 addon_kubernetes_dashboard_chart_version: "5.3.1"
 addon_kubernetes_dashboard_release_name: "kubernetes-dashboard"
 addon_kubernetes_dashboard_release_namespace: "kube-system"
+addon_kubernetes_dashboard_service_monitor_enabled: false

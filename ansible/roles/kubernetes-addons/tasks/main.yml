@@ -5,21 +5,24 @@
   apt:
     name: python3-pip
     state: present
-  tags:
-    - helm
-    - metrics-server
-    - kubernetes_dashboard
-    - dashboard
 
 - name: Install PyYAML through pip
   ansible.builtin.pip:
     name: PyYAML
     state: present
     executable: pip3
-  tags:
-    - helm
-    - metrics-server
-    - kubernetes_dashboard
+
+- name: Create required directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    group: "{{ addons_system_group }}"
+    owner: "{{ addons_system_user }}"
+    mode: 0755
+    recurse: yes
+  with_items:
+    - "/tmp/helm/metrics-server"
+    - "/tmp/helm/kubernetes-dashboard"
 
 ## Helm
 - name: Install helm
@@ -32,39 +35,82 @@
     - helm
 
 ## Metrics server
+- name: Add values.yaml file for metrics-server
+  ansible.builtin.template:
+    backup: no
+    dest: /tmp/helm/metrics-server/values.yaml
+    group: "{{ addons_system_group }}"
+    owner: "{{ addons_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/helm/metrics-server-values.yaml.j2"
+  tags:
+    - metrics-server
+  when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
+
+- name: Add metrics-server's helm repository
+  kubernetes.core.helm_repository:
+    binary_path: "/snap/bin/helm"
+    name: "{{ addon_metric_server_repo_name }}"
+    repo_url: "{{ addon_metric_server_repo_url }}"
+  tags:
+    - metrics-server
+  when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
+
 - name: Install metrics-server
   kubernetes.core.helm:
-    name: "{{ addon_metric_server_repo_friendly_name }}"
-    repo_url: "{{ addon_metric_server_repo_url }}"
+    binary_path: "/snap/bin/helm"
+    release_name: "{{ addon_metric_server_release_name }}"
     chart_ref: "{{ addon_metric_server_chart_ref }}"
     chart_version: "{{ addon_metric_server_chart_version }}"
     update_repo_cache: true
-    release_name: "{{ addon_metric_server_release_name }}"
     release_namespace: "{{ addon_metric_server_release_namespace }}"
     create_namespace: true
     history_max: 10
-    atomic: yes
+    atomic: no
     release_state: present
-    release_values: []
-    values_files: []
+    values_files:
+      - /tmp/helm/metrics-server/values.yaml
   tags:
     - metrics-server
+  when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
 
 ## Kubernetes dashboard
+- name: Add values.yaml file for kubernetes-dashboard
+  ansible.builtin.template:
+    backup: no
+    dest: /tmp/helm/kubernetes-dashboard/values.yaml
+    group: "{{ addons_system_group }}"
+    owner: "{{ addons_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/helm/kubernetes-dashboard-values.yaml.j2"
+  tags:
+    - kubernetes-dashboard
+  when: addon_kubernetes_dashboard_enabled is true
+
+- name: Add kubernetes-dashboard's helm repository
+  kubernetes.core.helm_repository:
+    binary_path: "/snap/bin/helm"
+    name: "{{ addon_kubernetes_dashboard_repo_name }}"
+    repo_url: "{{ addon_kubernetes_dashboard_repo_url }}"
+  tags:
+    - kubernetes-dashboard
+  when: addon_kubernetes_dashboard_enabled is true
+
 - name: Install kubernetes dashboard
   kubernetes.core.helm:
-    name: "{{ addon_kubernetes_dashboard_repo_friendly_name }}"
-    repo_url: "{{ addon_kubernetes_dashboard_repo_url }}"
+    binary_path: "/snap/bin/helm"
+    release_name: "{{ addon_kubernetes_dashboard_release_name }}"
     chart_ref: "{{ addon_kubernetes_dashboard_chart_ref }}"
     chart_version: "{{ addon_kubernetes_dashboard_chart_version }}"
     update_repo_cache: true
-    release_name: "{{ addon_kubernetes_dashboard_release_name }}"
+
     release_namespace: "{{ addon_kubernetes_dashboard_release_namespace }}"
     create_namespace: true
     history_max: 10
-    atomic: yes
+    atomic: no
     release_state: present
-    release_values: []
-    values_files: []
+    values_files:
+      - /tmp/helm/kubernetes-dashboard/values.yaml
   tags:
     - kubernetes_dashboard
+  when: addon_kubernetes_dashboard_enabled is true

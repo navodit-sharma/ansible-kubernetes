@@ -1,0 +1,22 @@
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+priorityClassName: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 200Mi
+  limits:
+    cpu: 1
+    memory: 200Mi
+
+service:
+  type: NodePort
+  externalPort: 443
+
+serviceMonitor:
+  enabled: {{ addon_kubernetes_dashboard_service_monitor_enabled }}
