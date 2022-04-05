@@ -21,3 +21,5 @@ containerd_sysctl_iptables_bridged_traffic:
 containerd_kernel_modules:
   - br_netfilter
   - overlay
+containerd_nerdctl_version: 0.18.0
+containerd_nerdctl_binary_url: "https://github.com/containerd/nerdctl/releases/download/v{{ containerd_nerdctl_version }}/nerdctl-{{ containerd_nerdctl_version }}-linux-amd64.tar.gz"

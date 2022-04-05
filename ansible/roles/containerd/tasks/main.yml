@@ -128,5 +128,15 @@
     state: started
     no_block: no
 
+- name: Install nerdctl
+  ansible.builtin.unarchive:
+    src: "{{ containerd_nerdctl_binary_url }}"
+    dest: /usr/local/bin
+    remote_src: yes
+    include:
+      - nerdctl
+  tags:
+    - nerdctl
+
 - name: Execute handlers
   meta: flush_handlers
