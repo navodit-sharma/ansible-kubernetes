@@ -1,0 +1,6 @@
+
+# Generate host file entries
+for i in `seq 1 30`; do if [ "${#i}" -le 1 ]; then echo "10.11.14.${i}     valpaas140${i}    valpaas140${i}.valamis.local"; else echo "10.11.14.${i}    valpaas14${i}    valpaas14${i}.valamis.local"; fi; done
+
+# SSH conectivity test
+for i in 10 11 `seq 11 13` `seq 16 18` `seq 21 30`; do echo -n "Connecting to -- valpaas14${i}.valamis.local"; ssh -q root@valpaas14${i}.valamis.local exit && echo " .... ok" || echo " .... failed"; done
