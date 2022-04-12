@@ -38,6 +38,7 @@
 - name: Get DEB architecture
   shell: dpkg --print-architecture
   register: deb_arch
+  changed_when: false
 
 - name: Add apt signing key to a specific keyring file
   ansible.builtin.apt_key:
@@ -47,9 +48,13 @@
 
 - name: Add apt repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ deb_arch.stdout }} signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] {{ containerd_deb_url }} {{ hostvars[inventory_hostname][ansible_distribution_release] }} stable"
+    repo: "deb [arch={{ deb_arch.stdout }} signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] {{ containerd_deb_url }} {{ hostvars[inventory_hostname]['ansible_' + 'distribution_release'] }} stable"
     state: present
     update_cache: yes
+
+- name: Gather Package facts
+  package_facts:
+    manager: apt
 
 - name: Unhold containerd package
   command: apt-mark unhold containerd.io
@@ -114,7 +119,7 @@
 
 - name: Enable systemd cgroup
   ansible.builtin.replace:
-    path: {{ containerd_config_file }}
+    path: "{{ containerd_config_file }}"
     regexp: 'SystemdCgroup =.*'
     replace: 'SystemdCgroup = true'
   notify: Restart containerd.service
