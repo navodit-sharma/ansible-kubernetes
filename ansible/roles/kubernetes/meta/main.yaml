@@ -2,4 +2,5 @@
 
 dependencies:
   - { role: os-setup, tags: os }
-  - { role: docker, tags: docker }
+  - { role: docker, tags: docker, when: kubernetes_container_runtime == "docker" }
+  - { role: containerd, tags: containerd, when: kubernetes_container_runtime == "containerd" }

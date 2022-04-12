@@ -1,6 +1,7 @@
 ---
 network_interface: eth0
 kubernetes_version: 1.14.2-00
+kubernetes_container_runtime: "containerd"
 kubernetes_pod_netowrk_url: https://cloud.weave.works/k8s/net?k8s-version=
 kubernetes_master_bind_port: 6443
 kubernetes_setup_status_file: /etc/kubernetes/k8s-setup.status
