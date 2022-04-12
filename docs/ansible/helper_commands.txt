@@ -3,4 +3,10 @@
 for i in `seq 1 30`; do if [ "${#i}" -le 1 ]; then echo "10.11.14.${i}     valpaas140${i}    valpaas140${i}.valamis.local"; else echo "10.11.14.${i}    valpaas14${i}    valpaas14${i}.valamis.local"; fi; done
 
 # SSH conectivity test
-for i in 10 11 `seq 11 13` `seq 16 18` `seq 21 30`; do echo -n "Connecting to -- valpaas14${i}.valamis.local"; ssh -q root@valpaas14${i}.valamis.local exit && echo " .... ok" || echo " .... failed"; done
+for i in 10 `seq 11 13` `seq 16 18` `seq 21 30`; do echo -n "Connecting to -- valpaas14${i}.valamis.local"; ssh -q root@valpaas14${i}.valamis.local exit && echo " .... ok" || echo " .... failed"; done
+
+# Inventory - ansible
+for i in `seq 10 13` `seq 16 18` `seq 21 30`; do if [ "${#i}" -le 1 ]; then echo "valpaas140${i}.valamis.local"; else echo "valpaas14${i}.valamis.local"; fi; done
+
+# Change hostnames of all VMs in the list
+for i in 10 `seq 21 23`; do if [ "${#i}" -le 1 ]; then ssh -q root@valpaas140${i}.valamis.local "hostname valpaas140${i}.valamis.local && hostname > /etc/hostname" ; else ssh -q root@valpaas140${i}.valamis.local "hostname valpaas14${i}.valamis.local && hostname > /etc/hostname" ; fi; done
