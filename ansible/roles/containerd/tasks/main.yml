@@ -59,10 +59,11 @@
 - name: Unhold containerd package
   command: apt-mark unhold containerd.io
   when: "'containerd.io' in ansible_facts.packages"
+  changed_when: false
 
 - name: Install containerd.io
   apt:
-    name: containerd
+    name: containerd.io
     state: present
   notify: Restart containerd.service
 
@@ -108,20 +109,30 @@
     group: "{{ containerd_system_group }}"
     owner: "{{ containerd_system_user }}"
     mode: 0755
-    recurse: yes
+    recurse: no
   with_items:
     - "{{ containerd_config_dir }}"
 
-- name: Generate containerd config
-  shell: "containerd config default > {{ containerd_config_file }}"
+- name: Generate containerd config file
+  shell: "containerd config default > /tmp/containerd_config.toml"
   changed_when: false
-  notify: Restart containerd.service
 
-- name: Enable systemd cgroup
+- name: Update SystemdCgroup config in containerd config file
   ansible.builtin.replace:
-    path: "{{ containerd_config_file }}"
-    regexp: 'SystemdCgroup =.*'
+    path: /tmp/containerd_config.toml
+    regexp: 'SystemdCgroup = false.*'
     replace: 'SystemdCgroup = true'
+  changed_when: false
+
+- name: Copy containerd config file to correct location
+  ansible.builtin.copy:
+    src: /tmp/containerd_config.toml
+    dest: "{{ containerd_config_file }}"
+    group: "{{ containerd_system_group }}"
+    owner: "{{ containerd_system_user }}"
+    mode: '0644'
+    backup: no
+    remote_src: yes
   notify: Restart containerd.service
 
 - name: Ensuring containerd.service is enabled and started
