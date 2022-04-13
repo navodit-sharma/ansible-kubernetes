@@ -42,6 +42,7 @@
 - name: Turn off timesyncd service
   command: "timedatectl set-ntp off"
   changed_when: false
+  when: "'systemd-timesyncd' in ansible_facts.packages"
 
 - name: Disable systemd-timesyncd service
   systemd:
@@ -171,6 +172,7 @@
 
 - name: Update snapd refresh timer
   command: "snap set system refresh.timer={{ os_snapd_refresh_timer }}"
+  changed_when: false
 
 # Flush handlers
 - name: Execute handlers
