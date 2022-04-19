@@ -1,6 +1,11 @@
 ---
 
 # Disable IPV6
+- name: Check IPv6 status
+  command: cat /sys/module/ipv6/parameters/disable
+  register: ipv6Enabled
+  changed_when: false
+
 - name: Disable IPV6 - sysctl config
   sysctl:
     name: "{{ item.key }}"
@@ -8,6 +13,7 @@
     state: present
     value: "{{ item.value }}"
   with_items: "{{ os_sysctl_ipv6_disable }}"
+  when: ipv6Enabled.stdout == 0
 
 - name: Disable IPV6 module in GRUB config
   template:
@@ -73,6 +79,15 @@
       - ntp
       - ntpdate
   notify: Restart ntp and cron service
+
+- name: Create /var/lib/ntp directory
+  file:
+    path: /var/lib/ntp
+    state: directory
+    group: ntp
+    owner: ntp
+    mode: 0755
+    recurse: no
 
 - name: Configure NTP client service
   template:
