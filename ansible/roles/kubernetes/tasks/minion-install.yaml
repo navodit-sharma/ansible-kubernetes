@@ -62,7 +62,7 @@
 
 # Preflight checks
 - name: Running preflight checks
-  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }} --cri-socket {{ kubernetes_cri_socket_path }}"
+  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }}"
   register: preflightChecks
   ignore_errors: true
 

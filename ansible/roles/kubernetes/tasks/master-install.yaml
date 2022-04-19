@@ -70,7 +70,7 @@
     kubernetes_kubeadm_token: "{{ kubeadmTokenGenerateResult.stdout }}"
 
 - name: Running preflight checks
-  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight --cri-socket {{ kubernetes_cri_socket_path }}"
+  command: "kubeadm init --config /etc/kubernetes/kubeadm-config.yaml phase preflight"
   register: preflightChecks
   ignore_errors: true
   no_log: true
