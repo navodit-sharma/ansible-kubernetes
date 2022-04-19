@@ -59,7 +59,6 @@
 - name: Unhold containerd package
   command: apt-mark unhold containerd.io
   when: "'containerd.io' in ansible_facts.packages"
-  changed_when: false
 
 - name: Install containerd.io
   apt:
