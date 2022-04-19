@@ -2,7 +2,7 @@
 
 driftfile /var/lib/ntp/ntp.drift
 
-{%- for line in os_ntp_server_list %}
+{% for line in os_ntp_server_list %}
 pool {{ line }} iburst
 {% endfor %}
 
