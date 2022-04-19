@@ -76,7 +76,7 @@ evictionHard:
     nodefs.available: "{{ kubernetes_hard_eviction_nodefs_available }}"
     nodefs.inodesFree: "{{ kubernetes_hard_eviction_nodefs_inodesfree }}"
     imagefs.available: "{{ kubernetes_hard_eviction_imagefs_available }}"
-enforceNodeAllocatable: "{{ kubernetes_enforce_node_allocatable }}"
+enforceNodeAllocatable: {{ kubernetes_enforce_node_allocatable }}
 ---
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
