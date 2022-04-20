@@ -65,6 +65,7 @@
   command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }}"
   register: preflightChecks
   ignore_errors: true
+  no_log: true
 
 - name: Validating if node was previously initialized
   debug:

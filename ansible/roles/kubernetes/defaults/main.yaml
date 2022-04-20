@@ -41,5 +41,6 @@ kubernetes_hard_eviction_nodefs_available: "10%"
 kubernetes_hard_eviction_nodefs_inodesfree: "5%"
 kubernetes_hard_eviction_imagefs_available: "15%"
 kubernetes_enforce_node_allocatable: [pods]
+kubernetes_server_tls_bootstrap: true
 kubernetes_kubeproxy_mode: "ipvs"
 kubernetes_kubeproxy_ipvs_scheduler: ""

@@ -82,7 +82,7 @@
   delegate_to: "{{ groups['master'][0] }}"
 
 - name: Applying upgrade
-  command: "kubeadm upgrade node config --kubelet-version {{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }}"
+  command: "kubeadm upgrade node"
   changed_when: false
   register: upgradeStatus
   ignore_errors: true

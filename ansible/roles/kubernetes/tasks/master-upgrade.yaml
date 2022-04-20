@@ -114,7 +114,7 @@
   changed_when: false
 
 - name: Planning kubeadm upgrade
-  command: "kubeadm upgrade plan v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml"
+  command: "kubeadm upgrade plan v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }}"
   changed_when: false
   register: upgradePlan
   ignore_errors: true
@@ -172,7 +172,7 @@
 
 - name: Validating server startup
   wait_for:
-    delay: 60
+    delay: 5
     timeout: 900
     host: 127.0.0.1
     port: "{{ kubernetes_master_bind_port }}"
