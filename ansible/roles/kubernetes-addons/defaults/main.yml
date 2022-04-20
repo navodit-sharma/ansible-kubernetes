@@ -25,3 +25,4 @@ addon_kubernetes_dashboard_chart_version: "5.3.1"
 addon_kubernetes_dashboard_release_name: "kubernetes-dashboard"
 addon_kubernetes_dashboard_release_namespace: "kube-system"
 addon_kubernetes_dashboard_service_monitor_enabled: false
+addon_kubernetes_dashboard_metrics_scraper_enabled: true

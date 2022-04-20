@@ -103,7 +103,6 @@
     chart_ref: "{{ addon_kubernetes_dashboard_chart_ref }}"
     chart_version: "{{ addon_kubernetes_dashboard_chart_version }}"
     update_repo_cache: true
-
     release_namespace: "{{ addon_kubernetes_dashboard_release_namespace }}"
     create_namespace: true
     history_max: 10
@@ -112,5 +111,5 @@
     values_files:
       - /tmp/helm/kubernetes-dashboard/values.yaml
   tags:
-    - kubernetes_dashboard
+    - kubernetes-dashboard
   when: addon_kubernetes_dashboard_enabled is true
