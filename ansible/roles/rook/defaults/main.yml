@@ -1,2 +1,239 @@
 ---
-# defaults file for rook
+
+rook_operator_version: 1.9.1
+rook_operator_crds_enabled: "true"
+rook_operator_resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+rook_operator_node_selector: "valamis.com/dedicated=storage"
+rook_operator_tolerations:
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "storage"
+    effect: "NoSchedule"
+rook_operator_log_level: "INFO"
+rook_operator_priority_class: "system-cluster-critical"
+rook_operator_csi_rbd_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-resizer
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-attacher
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-snapshotter
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-rbdplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : csi-omap-generator
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_rbd_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-rbdplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_cephfs_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-resizer
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-attacher
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-snapshotter
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-cephfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_cephfs_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-cephfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_nfs_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-nfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+rook_operator_csi_nfs_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-nfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+rook_operator_provisioner_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_provisioner_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_plugin_tolerations:
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "storage"
+    effect: "NoSchedule"
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "shared"
+    effect: "NoSchedule"
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "dxp"
+    effect: "NoSchedule"
+rook_operator_force_cephfs_kernel_client: "true"
+rook_operator_kubelet_dir_path: "/var/lib/kubelet"
+rook_operator_volume_replication_enabled: "false"
+rook_operator_csi_addons_enabled: "false"
+rook_operator_nfs_enabled: "false"
+rook_operator_discovery_daemon_enabled: "false"
+rook_operator_use_host_network: "false"
+rook_operator_discover_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_discover_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_admissioncontroller_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_admissioncontroller_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_monitoring_enabled: "true"

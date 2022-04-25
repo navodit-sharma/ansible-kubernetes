@@ -1,2 +1,13 @@
 ---
-# tasks file for rook
+
+- name: role, list every file in role_path/templates
+  debug:
+    msg: "{{item}}"
+  with_fileglob: "{{role_path}}/templates/*.*"
+
+- name: create file out of every jinja2 template
+  template:
+    src: "{{item}}"
+    dest: /tmp/{{ item | basename | regex_replace('\.j2$', '') }}
+    trim_blocks: true
+  with_fileglob: "../templates/*.j2"
