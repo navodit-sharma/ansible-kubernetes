@@ -179,7 +179,7 @@
     state: started
     msg: "Server is not ready yet on port {{ kubernetes_master_bind_port }} !!"
 
-- name: Upgrading pod-network provider
+- name: Updating pod-network
   shell: kubectl apply -f "{{ kubernetes_pod_netowrk_url }}$(kubectl version | base64 | tr -d '\n')"
   changed_when: false
 
