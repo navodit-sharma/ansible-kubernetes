@@ -1,0 +1,354 @@
+# {{ ansible_managed }}
+# jinja2: lstrip_blocks: "False", trim_blocks: "True"
+#
+# Reference : https://raw.githubusercontent.com/rook/rook/v{{ rook_ceph_version }}/deploy/charts/rook-ceph-cluster/values.yaml
+---
+operatorNamespace: rook-ceph
+clusterName: rook-ceph
+# Ability to override ceph.conf
+# configOverride: |
+#   [global]
+#   mon_allow_pool_delete = true
+#   osd_pool_default_size = 3
+#   osd_pool_default_min_size = 2
+toolbox:
+  enabled: false
+  image: rook/ceph:VERSION
+  tolerations: []
+  affinity: {}
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+  priorityClassName: class
+monitoring:
+  enabled: false
+  createPrometheusRules: false
+pspEnable: true
+# cephClusterSpec reference : https://rook.github.io/docs/rook/v{{ rook_ceph_version_short }}/ceph-cluster-crd.html
+cephClusterSpec:
+  cephVersion:
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  skipUpgradeChecks: false
+  continueUpgradeAfterChecksEvenIfNotHealthy: false
+  waitTimeoutForHealthyOSDInMinutes: 10
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 2
+    allowMultiplePerNode: false
+    modules:
+      - name: pg_autoscaler
+        enabled: true
+  dashboard:
+    enabled: true
+    # urlPrefix: /ceph-dashboard
+    port: 8443
+    ssl: true
+  crashCollector:
+    disable: false
+    daysToRetain: 365
+  logCollector:
+    enabled: true
+    periodicity: 24h
+  cleanupPolicy:
+    confirmation: ""
+    sanitizeDisks:
+      method: quick
+      dataSource: zero
+      iteration: 1
+    allowUninstallWithVolumes: false
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - storage-node
+      topologySpreadConstraints:
+      tolerations:
+      - key: storage-node
+        operator: Exists
+  labels:
+    all:
+    mon:
+    cleanup:
+    mgr:
+    osd:
+    prepareosd:
+    monitoring:
+  resources:
+    mgr:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+    mon:
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+      requests:
+        cpu: "1000m"
+        memory: "1Gi"
+    osd:
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+      requests:
+        cpu: "1000m"
+        memory: "4Gi"
+    prepareosd:
+      limits:
+        cpu: "500m"
+        memory: "200Mi"
+      requests:
+        cpu: "500m"
+        memory: "50Mi"
+    mgr-sidecar:
+      limits:
+        cpu: "500m"
+        memory: "100Mi"
+      requests:
+        cpu: "100m"
+        memory: "40Mi"
+    crashcollector:
+      limits:
+        cpu: "500m"
+        memory: "60Mi"
+      requests:
+        cpu: "100m"
+        memory: "60Mi"
+    logcollector:
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+      requests:
+        cpu: "100m"
+        memory: "100Mi"
+    cleanup:
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "100Mi"
+  removeOSDsIfOutAndSafeToRemove: false
+  priorityClassNames:
+    mon: system-node-critical
+    osd: system-node-critical
+    mgr: system-cluster-critical
+  storage:
+    useAllNodes: true
+    useAllDevices: true
+    deviceFilter:
+    config:
+      crushRoot: "custom-root"
+      metadataDevice: "md0"
+      databaseSizeMB: "1024"
+      journalSizeMB: "1024"
+      osdsPerDevice: "1"
+      encryptedDevice: "false"
+    nodes:
+      - name: "172.17.4.201"
+        devices:
+          - name: "sdb"
+          - name: "nvme01"
+            config:
+              osdsPerDevice: "5"
+          - name: "/dev/disk/by-id/ata-ST4000DM004-XXXX"
+        config:
+      - name: "172.17.4.301"
+        deviceFilter: "^sd."
+  disruptionManagement:
+    managePodBudgets: true
+    osdMaintenanceTimeout: 30
+    pgHealthCheckTimeout: 0
+  healthCheck:
+    daemonHealth:
+      mon:
+        disabled: false
+        interval: 45s
+      osd:
+        disabled: false
+        interval: 60s
+      status:
+        disabled: false
+        interval: 60s
+    livenessProbe:
+      mon:
+        disabled: false
+      mgr:
+        disabled: false
+      osd:
+        disabled: false
+ingress:
+  dashboard: {}
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   external-dns.alpha.kubernetes.io/hostname: example.com
+    #   nginx.ingress.kubernetes.io/rewrite-target: /ceph-dashboard/$2
+    # host:
+    #   name: example.com
+    #   path: "/ceph-dashboard(/|$)(.*)"
+    # tls:
+    # ingressClassName:
+cephBlockPools:
+  - name: ceph-blockpool
+    # see https://github.com/rook/rook/blob/master/Documentation/ceph-pool-crd.md#spec for available configuration
+    spec:
+      failureDomain: host
+      replicated:
+        size: 3
+    storageClass:
+      enabled: true
+      name: ceph-block
+      isDefault: true
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      mountOptions: []
+      # see https://github.com/rook/rook/blob/master/Documentation/ceph-block.md#provision-storage for available configuration
+      parameters:
+        # (optional) mapOptions is a comma-separated list of map options.
+        # For krbd options refer
+        # https://docs.ceph.com/docs/master/man/8/rbd/#kernel-rbd-krbd-options
+        # For nbd options refer
+        # https://docs.ceph.com/docs/master/man/8/rbd-nbd/#options
+        # mapOptions: lock_on_read,queue_depth=1024
+
+        # (optional) unmapOptions is a comma-separated list of unmap options.
+        # For krbd options refer
+        # https://docs.ceph.com/docs/master/man/8/rbd/#kernel-rbd-krbd-options
+        # For nbd options refer
+        # https://docs.ceph.com/docs/master/man/8/rbd-nbd/#options
+        # unmapOptions: force
+
+        # RBD image format. Defaults to "2".
+        imageFormat: "2"
+        # RBD image features. Available for imageFormat: "2". CSI RBD currently supports only `layering` feature.
+        imageFeatures: layering
+        # The secrets contain Ceph admin credentials.
+        csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+        csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+        csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+        csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+        csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+        # Specify the filesystem type of the volume. If not specified, csi-provisioner
+        # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
+        # in hyperconverged settings where the volume is mounted on the same node as the osds.
+        csi.storage.k8s.io/fstype: ext4
+cephFileSystems:
+  - name: ceph-filesystem
+    # see https://github.com/rook/rook/blob/master/Documentation/ceph-filesystem-crd.md#filesystem-settings for available configuration
+    spec:
+      metadataPool:
+        replicated:
+          size: 3
+      dataPools:
+        - failureDomain: host
+          replicated:
+            size: 3
+          # Optional and highly recommended, 'data0' by default, see https://github.com/rook/rook/blob/master/Documentation/ceph-filesystem-crd.md#pools
+          name: data0
+      metadataServer:
+        activeCount: 1
+        activeStandby: true
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+          requests:
+            cpu: "1000m"
+            memory: "4Gi"
+        priorityClassName: system-cluster-critical
+    storageClass:
+      enabled: true
+      isDefault: false
+      name: ceph-filesystem
+      # (Optional) specify a data pool to use, must be the name of one of the data pools above, 'data0' by default
+      pool: data0
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      mountOptions: []
+      # see https://github.com/rook/rook/blob/master/Documentation/ceph-filesystem.md#provision-storage for available configuration
+      parameters:
+        # The secrets contain Ceph admin credentials.
+        csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+        csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+        csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+        # Specify the filesystem type of the volume. If not specified, csi-provisioner
+        # will set default as `ext4`. Note that `xfs` is not recommended due to potential deadlock
+        # in hyperconverged settings where the volume is mounted on the same node as the osds.
+        csi.storage.k8s.io/fstype: ext4
+
+cephFileSystemVolumeSnapshotClass:
+  enabled: false
+  name: ceph-filesystem
+  isDefault: true
+  deletionPolicy: Delete
+  annotations: {}
+  labels: {}
+  # see https://rook.io/docs/rook/latest/ceph-csi-snapshot.html#cephfs-snapshots for available configuration
+  parameters: {}
+
+cephBlockPoolsVolumeSnapshotClass:
+  enabled: false
+  name: ceph-block
+  isDefault: false
+  deletionPolicy: Delete
+  annotations: {}
+  labels: {}
+  # see https://rook.io/docs/rook/latest/ceph-csi-snapshot.html#rbd-snapshots for available configuration
+  parameters: {}
+
+cephObjectStores:
+  - name: ceph-objectstore
+    # see https://github.com/rook/rook/blob/master/Documentation/ceph-object-store-crd.md#object-store-settings for available configuration
+    spec:
+      metadataPool:
+        failureDomain: host
+        replicated:
+          size: 3
+      dataPool:
+        failureDomain: host
+        erasureCoded:
+          dataChunks: 2
+          codingChunks: 1
+      preservePoolsOnDelete: true
+      gateway:
+        port: 80
+        resources:
+          limits:
+            cpu: "2000m"
+            memory: "2Gi"
+          requests:
+            cpu: "1000m"
+            memory: "1Gi"
+        # securePort: 443
+        # sslCertificateRef:
+        instances: 1
+        priorityClassName: system-cluster-critical
+      healthCheck:
+        bucket:
+          interval: 60s
+    storageClass:
+      enabled: true
+      name: ceph-bucket
+      reclaimPolicy: Delete
+      # see https://github.com/rook/rook/blob/master/Documentation/ceph-object-bucket-claim.md#storageclass for available configuration
+      parameters:
+        # note: objectStoreNamespace and objectStoreName are configured by the chart
+        region: us-east-1
