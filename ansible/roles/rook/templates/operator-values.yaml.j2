@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 #
-# Reference : https://raw.githubusercontent.com/rook/rook/v{{ rook_operator_version }}/deploy/charts/rook-ceph/values.yaml
+# Reference : https://raw.githubusercontent.com/rook/rook/v{{ rook_ceph_version }}/deploy/charts/rook-ceph/values.yaml
 
 crds:
   enabled: {{ rook_operator_crds_enabled }}
@@ -11,31 +11,29 @@ nodeSelector:
 tolerations:
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(2) | trim }}
 logLevel: {{ rook_operator_log_level }}
-rbacEnable: true
-pspEnable: true
+rbacEnable: {{ rook_operator_rbac_enable }}
+pspEnable: {{ rook_operator_psp_enable }}
 priorityClassName: {{ rook_operator_priority_class }}
 csi:
-  enableRbdDriver: true
-  enableCephfsDriver: true
-  enableGrpcMetrics: false
-  enableCSIHostNetwork: false
-  enableCephfsSnapshotter: true
-  enableRBDSnapshotter: true
-  enablePluginSelinuxHostMount: false
-  enableCSIEncryption: false
-  pluginPriorityClassName: system-node-critical
-  provisionerPriorityClassName: system-cluster-critical
-  rbdFSGroupPolicy: "ReadWriteOnceWithFSType"
-  cephFSFSGroupPolicy: "ReadWriteOnceWithFSType"
-  nfsFSGroupPolicy: "ReadWriteOnceWithFSType"
-  enableOMAPGenerator: false
-  provisionerReplicas: 2
-  logLevel: 0
-  rbdPluginUpdateStrategy: RollingUpdate
-  cephFSPluginUpdateStrategy: RollingUpdate
-  nfsPluginUpdateStrategy: RollingUpdate
-  grpcTimeoutInSeconds: 150
-  allowUnsupportedVersion: false
+  enableRbdDriver: {{ rook_operator_csi_enable_rbd_driver }}
+  enableCephfsDriver: {{ rook_operator_csi_enable_cephfs_driver }}
+  enableGrpcMetrics: {{ rook_operator_csi_enable_grpc_metrics }}
+  enableCSIHostNetwork: {{ rook_operator_csi_enable_host_network }}
+  enableCephfsSnapshotter: {{ rook_operator_csi_enable_cephfs_snapshotter }}
+  enableRBDSnapshotter: {{ rook_operator_csi_enable_rbd_snapshotter }}
+  enableCSIEncryption: {{ rook_operator_csi_enable_encryption }}
+  pluginPriorityClassName: {{ rook_operator_csi_plugin_priority_class }}
+  provisionerPriorityClassName: {{ rook_operator_csi_provisioner_priority_class }}
+  rbdFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  cephFSFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  nfsFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  provisionerReplicas: {{ rook_operator_csi_provisioner_replicas }}
+  logLevel: {{ rook_operator_csi_containers_loglevel }}
+  rbdPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  cephFSPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  nfsPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  grpcTimeoutInSeconds: {{ rook_operator_csi_grpc_timeout_seconds }}
+  allowUnsupportedVersion: {{ rook_operator_csi_allow_unsupported_version }}
   csiRBDProvisionerResource: |
     {{ rook_operator_csi_rbd_provisioner_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
   csiRBDPluginResource: |
@@ -53,7 +51,7 @@ csi:
   provisionerNodeAffinity: {{ rook_operator_provisioner_node_affinity }}
   pluginTolerations:
     {{ rook_operator_plugin_tolerations | to_nice_yaml(indent=2) | indent(4) | trim }}
-  forceCephFSKernelClient: "{{ rook_operator_force_cephfs_kernel_client }}"
+  forceCephFSKernelClient: {{ rook_operator_force_cephfs_kernel_client }}
   kubeletDirPath: {{ rook_operator_kubelet_dir_path }}
   volumeReplication:
     enabled: {{ rook_operator_volume_replication_enabled }}
@@ -62,17 +60,16 @@ csi:
   nfs:
     enabled: {{ rook_operator_nfs_enabled }}
 enableDiscoveryDaemon: {{ rook_operator_discovery_daemon_enabled }}
-cephCommandsTimeoutSeconds: "15"
+cephCommandsTimeoutSeconds: "{{ rook_operator_ceph_commands_timeout_seconds }}"
 useOperatorHostNetwork: {{ rook_operator_use_host_network }}
 discover:
   tolerations:
     {{ rook_operator_discover_tolerations | trim }}
   nodeAffinity: {{ rook_operator_discover_node_affinity }}
-enableSelinuxRelabeling: false
-disableAdmissionController: false
-hostpathRequiresPrivileged: false
-disableDeviceHotplug: false
-enableOBCWatchOperatorNamespace: true
+
+hostpathRequiresPrivileged: {{ rook_operator_hostpath_requires_privileged }}
+disableDeviceHotplug: {{ rook_operator_disable_device_hotplug }}
+disableAdmissionController: {{ rook_operator_disable_admissioncontroller }}
 admissionController:
   tolerations:
     {{ rook_operator_admissioncontroller_tolerations | trim }}

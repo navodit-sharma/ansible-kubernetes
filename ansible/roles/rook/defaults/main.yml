@@ -1,6 +1,10 @@
 ---
 
-rook_operator_version: 1.9.1
+# Common
+rook_ceph_version: 1.9.1
+rook_ceph_version_short: 1.9
+
+# Operator helm values
 rook_operator_crds_enabled: "true"
 rook_operator_resources:
   limits:
@@ -16,7 +20,24 @@ rook_operator_tolerations:
     value: "storage"
     effect: "NoSchedule"
 rook_operator_log_level: "INFO"
+rook_operator_rbac_enable: "true"
+rook_operator_psp_enable: "true"
 rook_operator_priority_class: "system-cluster-critical"
+rook_operator_csi_enable_rbd_driver: "true"
+rook_operator_csi_enable_cephfs_driver: "true"
+rook_operator_csi_enable_grpc_metrics: "false"
+rook_operator_csi_enable_host_network: "false"
+rook_operator_csi_enable_cephfs_snapshotter: "true"
+rook_operator_csi_enable_rbd_snapshotter: "true"
+rook_operator_csi_enable_encryption: "false"
+rook_operator_csi_plugin_priority_class: "system-node-critical"
+rook_operator_csi_provisioner_priority_class: "system-cluster-critical"
+rook_operator_csi_filesystem_group_policy: "ReadWriteOnceWithFSType"
+rook_operator_csi_provisioner_replicas: 2
+rook_operator_csi_containers_loglevel: 0
+rook_operator_csi_update_strategy: "RollingUpdate"
+rook_operator_csi_grpc_timeout_seconds: 150
+rook_operator_csi_allow_unsupported_version: "false"
 rook_operator_csi_rbd_provisioner_resource:
   - name : csi-provisioner
     resource:
@@ -230,10 +251,17 @@ rook_operator_csi_addons_enabled: "false"
 rook_operator_nfs_enabled: "false"
 rook_operator_discovery_daemon_enabled: "false"
 rook_operator_use_host_network: "false"
+rook_operator_ceph_commands_timeout_seconds: "15"
 rook_operator_discover_tolerations: |
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
 rook_operator_discover_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_hostpath_requires_privileged: "false"
+rook_operator_disable_device_hotplug: "false"
+rook_operator_disable_admissioncontroller: "false"
 rook_operator_admissioncontroller_tolerations: |
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
 rook_operator_admissioncontroller_node_affinity: "{{ rook_operator_node_selector }}"
 rook_operator_monitoring_enabled: "true"
+
+
+# Ceph cluster helm values
