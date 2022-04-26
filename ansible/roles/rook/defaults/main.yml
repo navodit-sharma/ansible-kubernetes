@@ -3,6 +3,7 @@
 # Common
 rook_ceph_version: 1.9.1
 rook_ceph_version_short: 1.9
+rook_ceph_namespace: "rook-ceph"
 
 # Operator helm values
 rook_operator_crds_enabled: "true"
@@ -265,3 +266,254 @@ rook_operator_monitoring_enabled: "true"
 
 
 # Ceph cluster helm values
+rook_ceph_cluster_namespace: "rook-ceph"
+rook_ceph_toolbox_enabled: "true"
+rook_ceph_toolbox_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(2) }}
+rook_ceph_toolbox_resources:
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+rook_ceph_toolbox_priorityclass: "valamis-third-class"
+rook_ceph_monitoring_enabled: "false"
+rook_ceph_monitoring_create_prometheus_rules: "false"
+rook_ceph_psp_enable: "true"
+rook_ceph_cluster_allow_unsupported_version: "false"
+rook_ceph_cluster_data_dir_host_path: "/var/lib/rook"
+rook_ceph_cluster_skip_upgrade_checks: "false"
+rook_ceph_cluster_continue_upgrade_after_checks_even_if_not_healthy: "false"
+rook_ceph_cluster_wait_timeout_for_healthy_osd_minutes: 10
+rook_ceph_cluster_mon:
+  count: 3
+  allowMultiplePerNode: false
+rook_ceph_cluster_mgr:
+  count: 2
+  allowMultiplePerNode: false
+  modules:
+    - name: pg_autoscaler
+      enabled: true
+rook_ceph_cluster_dashboard:
+  enabled: true
+  port: 8443
+  ssl: true
+rook_ceph_cluster_crashcollector:
+  disable: false
+  daysToRetain: 365
+rook_ceph_cluster_logcollector:
+  enabled: true
+  periodicity: 24h
+rook_ceph_cluster_cleanup_policy:
+  confirmation: ""
+  sanitizeDisks:
+    method: quick
+    dataSource: zero
+    iteration: 1
+  allowUninstallWithVolumes: false
+rook_ceph_cluster_placement:
+  all:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: valamis.com/dedicated
+              operator: In
+              values:
+              - storage
+    topologySpreadConstraints:
+    tolerations: |
+      {{ rook_operator_tolerations }}
+rook_ceph_cluster_labels:
+rook_ceph_cluster_resources:
+  mgr:
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  mon:
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+    requests:
+      cpu: "1000m"
+      memory: "1Gi"
+  osd:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "1000m"
+      memory: "4Gi"
+  prepareosd:
+    limits:
+      cpu: "500m"
+      memory: "200Mi"
+    requests:
+      cpu: "500m"
+      memory: "50Mi"
+  mgr-sidecar:
+    limits:
+      cpu: "500m"
+      memory: "100Mi"
+    requests:
+      cpu: "100m"
+      memory: "40Mi"
+  crashcollector:
+    limits:
+      cpu: "500m"
+      memory: "60Mi"
+    requests:
+      cpu: "100m"
+      memory: "60Mi"
+  logcollector:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+  cleanup:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "100Mi"
+rook_ceph_cluster_remove_osd_if_out_and_safe_to_remove: "false"
+rook_ceph_cluster_priority_class_mon: "system-node-critical"
+rook_ceph_cluster_priority_class_osd: "system-node-critical"
+rook_ceph_cluster_priority_class_mgr: "system-cluster-critical"
+rook_ceph_cluster_storage_nodes_and_disks:
+  - name: "172.17.4.201"
+    devices:
+      - name: "sdb"
+      - name: "nvme01"
+        config:
+          osdsPerDevice: "5"
+      - name: "/dev/disk/by-id/ata-ST4000DM004-XXXX"
+    config:
+  - name: "172.17.4.301"
+    deviceFilter: "^sd."
+rook_ceph_cluster_storage:
+  useAllNodes: false
+  useAllDevices: false
+  deviceFilter:
+  config:
+    crushRoot: "custom-root"
+    metadataDevice: "md0"
+    databaseSizeMB: "1024"
+    journalSizeMB: "1024"
+    osdsPerDevice: "1"
+    encryptedDevice: "false"
+  nodes: |
+    {{ rook_ceph_cluster_storage_nodes_and_disks }}
+rook_ceph_cluster_disruption_management:
+  managePodBudgets: true
+  osdMaintenanceTimeout: 30
+  pgHealthCheckTimeout: 0
+rook_ceph_cluster_healthcheck:
+  daemonHealth:
+    mon:
+      disabled: false
+      interval: 45s
+    osd:
+      disabled: false
+      interval: 60s
+    status:
+      disabled: false
+      interval: 60s
+  livenessProbe:
+    mon:
+      disabled: false
+    mgr:
+      disabled: false
+    osd:
+      disabled: false
+rook_ceph_blockpool_name: ceph-blockpool
+rook_ceph_blockpool_failuredomain: host
+rook_ceph_blockpool_replicated_size: 3
+rook_ceph_blockpool_storageclass_enabled: "true"
+rook_ceph_blockpool_storageclass_name: rook-ceph-block
+rook_ceph_blockpool_storageclass_is_default: "true"
+rook_ceph_blockpool_storageclass_reclaim_policy: Delete
+rook_ceph_blockpool_storageclass_allow_volume_expansion: "true"
+rook_ceph_blockpool_storageclass_parameters:
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+rook_ceph_filesystem_name: ceph-filesystem
+rook_ceph_filesystem_metadatapool_failuredomain: host
+rook_ceph_filesystem_metadatapool_replicated_size: 3
+rook_ceph_filesystem_datapool_failuredomain: host
+rook_ceph_filesystem_datapool_replicated_size: 3
+rook_ceph_filesystem_datapool_name: ceph-filesystem
+rook_ceph_filesystem_metadataserver:
+  activeCount: 1
+  activeStandby: true
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "1000m"
+      memory: "4Gi"
+  priorityClassName: system-cluster-critical
+rook_ceph_filesystem_storageclass_enabled: "true"
+rook_ceph_filesystem_storageclass_name: rook-ceph-filesystem
+rook_ceph_filesystem_storageclass_is_default: "false"
+rook_ceph_filesystem_storageclass_pool: "{{ rook_ceph_filesystem_datapool_name }}"
+rook_ceph_filesystem_storageclass_reclaim_policy: Delete
+rook_ceph_filesystem_storageclass_allow_volume_expansion: "true"
+rook_ceph_filesystem_storageclass_parameters:
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+rook_ceph_blockpool_snapshotclass_enabled: "true"
+rook_ceph_blockpool_snapshotclass_name: "rook-ceph-block"
+rook_ceph_blockpool_snapshotclass_is_default: "true"
+rook_ceph_blockpool_snapshotclass_deletion_policy: Delete
+rook_ceph_blockpool_snapshotclass_parameters:
+rook_ceph_filesystem_snapshotclass_enabled: "true"
+rook_ceph_filesystem_snapshotclass_name: "rook-ceph-block"
+rook_ceph_filesystem_snapshotclass_is_default: "false"
+rook_ceph_filesystem_snapshotclass_deletion_policy: Delete
+rook_ceph_filesystem_snapshotclass_parameters:
+rook_ceph_objectstore_name: ceph-objectstore
+rook_ceph_objectstore_metadatapool_failuredomain: host
+rook_ceph_objectstore_metadatapool_replicated_size: 3
+rook_ceph_objectstore_datapool_failuredomain: host
+rook_ceph_objectstore_datapool_erasurecoded_data_chunks: 2
+rook_ceph_objectstore_datapool_erasurecoded_coding_chunks: 1
+rook_ceph_objectstore_preserve_pools_on_delete: "true"
+rook_ceph_objectstore_gateway:
+  port: 80
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+    requests:
+      cpu: "1000m"
+      memory: "1Gi"
+  # securePort: 443
+  # sslCertificateRef:
+  instances: 1
+  priorityClassName: system-cluster-critical
+rook_ceph_objectstore_healthcheck_bucket_interval: 60s
+rook_ceph_objectstore_storageclass_enabled: "true"
+rook_ceph_objectstore_storageclass_name: "rook-ceph-object"
+rook_ceph_objectstore_storageclass_reclaim_policy: Delete
+rook_ceph_objectstore_storageclass_parameters:
