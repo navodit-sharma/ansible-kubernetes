@@ -125,6 +125,7 @@
       - gnupg2
       - software-properties-common
       - python3-pip
+      - jq
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
