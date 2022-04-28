@@ -113,9 +113,62 @@
       - "Kubernetes minion setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
   when: kubeadmJoinResult is failed
 
-- name: Add worker label to node
-  command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/worker= --overwrite=true"
+- name: Add AGENT label to node
+  command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/agent= --overwrite=true"
   changed_when: false
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to STORAGE services nodes
+  block:
+  - name: Set node role to STORAGE
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/storage= --overwrite=true"
+    changed_when: false
+  - name: Set STORAGE label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=storage --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-STORAGE-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=storage:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['storage']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to SHARED services nodes
+  block:
+  - name: Set node role to SHARED
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/aux= --overwrite=true"
+    changed_when: false
+  - name: Set SHARED label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=shared --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-SHARED-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=shared:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['shared']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to DXP services nodes
+  block:
+  - name: Set node role to DXP
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/dxp= --overwrite=true"
+    changed_when: false
+  - name: Set DXP label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=dxp --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-DXP-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=dxp:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['dxp']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to VALPOOL services nodes
+  block:
+  - name: Set node role to VALPOOL
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/valpool= --overwrite=true"
+    changed_when: false
+  - name: Set VALPOOL label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=valpool --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['valpool']
   delegate_to: "{{ groups['master'][0] }}"
 
 - name: Execute handlers
