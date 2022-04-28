@@ -120,7 +120,7 @@
   ignore_errors: true
 
 - name: Applying upgrade
-  command: "kubeadm upgrade apply v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} --config=/etc/kubernetes/kubeadm-config.yaml -f -y"
+  command: "kubeadm upgrade apply v{{ kubernetes_version | regex_replace('^(.*)-.*', '\\1') }} -f -y"
   changed_when: false
   register: upgradeStatus
   when: (upgradePlan.stdout.find('You can now apply the upgrade') != -1) or (upgradePlan.stdout.find('Awesome, you\'re up-to-date') != -1)

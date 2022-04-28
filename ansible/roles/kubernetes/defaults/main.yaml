@@ -2,6 +2,8 @@
 network_interface: eth0
 kubernetes_version: 1.14.2-00
 kubernetes_container_runtime: "containerd"
+kubernetes_cri_socket_path_containerd: "/run/containerd/containerd.sock"
+kubernetes_cri_socket_path_docker: "/var/run/dockershim.sock"
 kubernetes_pod_netowrk_url: https://cloud.weave.works/k8s/net?k8s-version=
 kubernetes_master_bind_port: 6443
 kubernetes_setup_status_file: /etc/kubernetes/k8s-setup.status
@@ -11,15 +13,13 @@ kubernetes_system_group: root
 kubernetes_apt_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
 kubernetes_deb_url: https://apt.kubernetes.io/
 kubernetes_deb_distro: kubernetes-xenial
-kubernetes_cri_socket_path: "/var/run/dockershim.sock"
-# kubernetes_cri_path: "/run/containerd/containerd.sock"
 kubernetes_kernel_modules:
   - ip_vs
   - ip_vs_rr
   - ip_vs_wrr
   - ip_vs_sh
   - nf_conntrack
-kubernetes_cluster_name: valamisdemo
+kubernetes_cluster_name: cluster
 kubernetes_log_dir_path: /var/log/kubernetes
 kubernetes_dns_name: "{{ kubernetes_cluster_name }}.local"
 kubernetes_service_subnet: "10.96.0.0/12"
