@@ -2,7 +2,6 @@
 
 # Common
 rook_ceph_version: 1.9.1
-rook_ceph_version_short: 1.9
 rook_ceph_namespace: "rook-ceph"
 
 # Operator helm values
@@ -300,10 +299,10 @@ rook_ceph_cluster_dashboard:
   port: 8443
   ssl: true
 rook_ceph_cluster_crashcollector:
-  disable: false
+  disable: true   # check
   daysToRetain: 365
 rook_ceph_cluster_logcollector:
-  enabled: true
+  enabled: true   # check
   periodicity: 24h
 rook_ceph_cluster_cleanup_policy:
   confirmation: ""

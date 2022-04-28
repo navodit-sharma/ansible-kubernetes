@@ -37,8 +37,12 @@ cephClusterSpec:
     {{ rook_ceph_cluster_cleanup_policy | to_nice_yaml(indent=2) | indent(4) | trim }}
   placement:
     {{ rook_ceph_cluster_placement | to_nice_yaml(indent=2) | indent(4) | trim }}
+{% if rook_ceph_cluster_labels is not none %}
   labels:
     {{ rook_ceph_cluster_labels | to_nice_yaml(indent=2) | indent(4) | trim }}
+{% else %}
+  labels: {}
+{% endif %}
   resources:
     {{ rook_ceph_cluster_resources | to_nice_yaml(2) | indent(4) | trim }}
   removeOSDsIfOutAndSafeToRemove: {{ rook_ceph_cluster_remove_osd_if_out_and_safe_to_remove }}
