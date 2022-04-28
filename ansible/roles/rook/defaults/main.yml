@@ -13,7 +13,9 @@ rook_operator_resources:
   requests:
     cpu: 100m
     memory: 128Mi
-rook_operator_node_selector: "valamis.com/dedicated=storage"
+rook_operator_node_selectors:
+  valamis.com/dedicated: storage
+rook_operator_node_affinity: "valamis.com/dedicated=storage"
 rook_operator_tolerations:
   - key: "valamis.com/dedicated"
     operator: "Equal"
@@ -230,7 +232,7 @@ rook_operator_csi_nfs_plugin_resource:
         cpu: 500m
 rook_operator_provisioner_tolerations: |
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
-rook_operator_provisioner_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_provisioner_node_affinity: "{{ rook_operator_node_affinity  }}"
 rook_operator_plugin_tolerations:
   - key: "valamis.com/dedicated"
     operator: "Equal"
@@ -254,13 +256,13 @@ rook_operator_use_host_network: "false"
 rook_operator_ceph_commands_timeout_seconds: "15"
 rook_operator_discover_tolerations: |
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
-rook_operator_discover_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_discover_node_affinity: "{{ rook_operator_node_affinity  }}"
 rook_operator_hostpath_requires_privileged: "false"
 rook_operator_disable_device_hotplug: "false"
 rook_operator_disable_admissioncontroller: "false"
 rook_operator_admissioncontroller_tolerations: |
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
-rook_operator_admissioncontroller_node_affinity: "{{ rook_operator_node_selector }}"
+rook_operator_admissioncontroller_node_affinity: "{{ rook_operator_node_affinity  }}"
 rook_operator_monitoring_enabled: "true"
 
 

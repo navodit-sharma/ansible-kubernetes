@@ -7,7 +7,7 @@ crds:
 resources:
   {{ rook_operator_resources | to_nice_yaml(indent=2) | indent(2) | trim }}
 nodeSelector:
-  {{ rook_operator_node_selector }}
+  {{ rook_operator_node_selectors | to_nice_yaml(indent=2) | indent(2) | trim }}
 tolerations:
   {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(2) | trim }}
 logLevel: {{ rook_operator_log_level }}
