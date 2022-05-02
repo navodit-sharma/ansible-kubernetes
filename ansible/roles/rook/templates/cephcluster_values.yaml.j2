@@ -41,7 +41,7 @@ cephClusterSpec:
   labels:
     {{ rook_ceph_cluster_labels | to_nice_yaml(indent=2) | indent(4) | trim }}
 {% else %}
-  labels: {}
+  labels:
 {% endif %}
   resources:
     {{ rook_ceph_cluster_resources | to_nice_yaml(2) | indent(4) | trim }}
@@ -72,7 +72,7 @@ cephBlockPools:
       parameters:
         {{ rook_ceph_blockpool_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
 {% else %}
-      parameters: {}
+      parameters:
 {% endif %}
 cephFileSystems:
   - name: {{ rook_ceph_filesystem_name }}
@@ -99,7 +99,7 @@ cephFileSystems:
       parameters:
         {{ rook_ceph_filesystem_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
 {% else %}
-      parameters: {}
+      parameters:
 {% endif %}
 cephBlockPoolsVolumeSnapshotClass:
   enabled: {{ rook_ceph_blockpool_snapshotclass_enabled }}
@@ -110,7 +110,7 @@ cephBlockPoolsVolumeSnapshotClass:
   parameters:
     {{ rook_ceph_blockpool_snapshotclass_parameters | to_nice_yaml(2) | indent(4) | trim }}
 {% else %}
-  parameters: {}
+  parameters:
 {% endif %}
 cephFileSystemVolumeSnapshotClass:
   enabled: {{ rook_ceph_filesystem_snapshotclass_enabled }}
@@ -121,7 +121,7 @@ cephFileSystemVolumeSnapshotClass:
   parameters:
     {{ rook_ceph_filesystem_snapshotclass_parameters | to_nice_yaml(2) | indent(4) | trim }}
 {% else %}
-  parameters: {}
+  parameters:
 {% endif %}
 cephObjectStores:
   - name: {{ rook_ceph_objectstore_name }}
@@ -149,5 +149,5 @@ cephObjectStores:
       parameters:
         {{ rook_ceph_objectstore_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
 {% else %}
-      parameters: {}
+      parameters:
 {% endif %}
