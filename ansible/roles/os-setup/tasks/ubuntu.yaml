@@ -126,6 +126,7 @@
       - software-properties-common
       - python3-pip
       - jq
+      - git
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
