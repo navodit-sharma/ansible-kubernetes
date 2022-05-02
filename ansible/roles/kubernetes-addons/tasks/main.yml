@@ -1,115 +1,166 @@
 ---
 
-## Common
-- name: Install required packages
-  apt:
-    name: python3-pip
-    state: present
-
-- name: Install PyYAML through pip
-  ansible.builtin.pip:
-    name: PyYAML
-    state: present
-    executable: pip3
-
-- name: Create required directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    group: "{{ addons_system_group }}"
-    owner: "{{ addons_system_user }}"
-    mode: 0755
-    recurse: yes
-  with_items:
-    - "/tmp/helm/metrics-server"
-    - "/tmp/helm/kubernetes-dashboard"
-
-## Helm
-- name: Install helm
-  community.general.snap:
-    name: helm
-    channel: "{{ addon_helm_version }}/stable"
-    classic: yes
-    state: present
+## Common - Following dependencies are required by all other addons mentioned in this file
+- name: Install dependencies
+  block:
+    - name: Install required packages
+      apt:
+        name: python3-pip
+        state: present
+    - name: Install PyYAML through pip
+      ansible.builtin.pip:
+        name: PyYAML
+        state: present
+        executable: pip3
+    - name: Install helm
+      community.general.snap:
+        name: helm
+        channel: "{{ addon_helm_version }}/stable"
+        classic: yes
+        state: present
   tags:
-    - helm
+    - addon/helm
+    - addon/metrics-server
+    - addon/kubernetes-dashboard
+    - addon/cert-manager
 
 ## Metrics server
-- name: Add values.yaml file for metrics-server
-  ansible.builtin.template:
-    backup: no
-    dest: /tmp/helm/metrics-server/values.yaml
-    group: "{{ addons_system_group }}"
-    owner: "{{ addons_system_user }}"
-    mode: 0755
-    src: "{{role_path}}/templates/helm/metrics-server-values.yaml.j2"
-  tags:
-    - metrics-server
+- name: Install Metrics server
+  block:
+    - name: Create required directories
+      file:
+        path: "/tmp/helm/metrics-server"
+        state: directory
+        group: "{{ addons_system_group }}"
+        owner: "{{ addons_system_user }}"
+        mode: 0755
+        recurse: yes
+    - name: Add values.yaml file for metrics-server
+      ansible.builtin.template:
+        backup: no
+        dest: /tmp/helm/metrics-server/values.yaml
+        group: "{{ addons_system_group }}"
+        owner: "{{ addons_system_user }}"
+        mode: 0755
+        src: "{{role_path}}/templates/helm/metrics-server-values.yaml.j2"
+    - name: Add metrics-server's helm repository
+      kubernetes.core.helm_repository:
+        binary_path: "/snap/bin/helm"
+        name: "{{ addon_metric_server_repo_name }}"
+        repo_url: "{{ addon_metric_server_repo_url }}"
+    - name: Deploy metrics-server
+      kubernetes.core.helm:
+        binary_path: "/snap/bin/helm"
+        release_name: "{{ addon_metric_server_release_name }}"
+        chart_ref: "{{ addon_metric_server_chart_ref }}"
+        chart_version: "{{ addon_metric_server_chart_version }}"
+        update_repo_cache: true
+        release_namespace: "{{ addon_metric_server_release_namespace }}"
+        create_namespace: true
+        history_max: 10
+        atomic: no
+        release_state: present
+        values_files:
+          - /tmp/helm/metrics-server/values.yaml
   when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
-
-- name: Add metrics-server's helm repository
-  kubernetes.core.helm_repository:
-    binary_path: "/snap/bin/helm"
-    name: "{{ addon_metric_server_repo_name }}"
-    repo_url: "{{ addon_metric_server_repo_url }}"
   tags:
-    - metrics-server
-  when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
+    - addon/metrics-server
+    - addon/kubernetes-dashboard
 
-- name: Install metrics-server
-  kubernetes.core.helm:
-    binary_path: "/snap/bin/helm"
-    release_name: "{{ addon_metric_server_release_name }}"
-    chart_ref: "{{ addon_metric_server_chart_ref }}"
-    chart_version: "{{ addon_metric_server_chart_version }}"
-    update_repo_cache: true
-    release_namespace: "{{ addon_metric_server_release_namespace }}"
-    create_namespace: true
-    history_max: 10
-    atomic: no
-    release_state: present
-    values_files:
-      - /tmp/helm/metrics-server/values.yaml
-  tags:
-    - metrics-server
-  when: addon_metric_server_enabled is true or addon_kubernetes_dashboard_enabled is true
-
-## Kubernetes dashboard
-- name: Add values.yaml file for kubernetes-dashboard
-  ansible.builtin.template:
-    backup: no
-    dest: /tmp/helm/kubernetes-dashboard/values.yaml
-    group: "{{ addons_system_group }}"
-    owner: "{{ addons_system_user }}"
-    mode: 0755
-    src: "{{role_path}}/templates/helm/kubernetes-dashboard-values.yaml.j2"
-  tags:
-    - kubernetes-dashboard
-  when: addon_kubernetes_dashboard_enabled is true
-
-- name: Add kubernetes-dashboard's helm repository
-  kubernetes.core.helm_repository:
-    binary_path: "/snap/bin/helm"
-    name: "{{ addon_kubernetes_dashboard_repo_name }}"
-    repo_url: "{{ addon_kubernetes_dashboard_repo_url }}"
-  tags:
-    - kubernetes-dashboard
-  when: addon_kubernetes_dashboard_enabled is true
-
+## Kubernetes dashboard - Requires metric-server as a dependency for resource visualisation in dashboard
 - name: Install kubernetes dashboard
-  kubernetes.core.helm:
-    binary_path: "/snap/bin/helm"
-    release_name: "{{ addon_kubernetes_dashboard_release_name }}"
-    chart_ref: "{{ addon_kubernetes_dashboard_chart_ref }}"
-    chart_version: "{{ addon_kubernetes_dashboard_chart_version }}"
-    update_repo_cache: true
-    release_namespace: "{{ addon_kubernetes_dashboard_release_namespace }}"
-    create_namespace: true
-    history_max: 10
-    atomic: no
-    release_state: present
-    values_files:
-      - /tmp/helm/kubernetes-dashboard/values.yaml
-  tags:
-    - kubernetes-dashboard
+  block:
+    - name: Create required directories
+      file:
+        path: "/tmp/helm/kubernetes-dashboard"
+        state: directory
+        group: "{{ addons_system_group }}"
+        owner: "{{ addons_system_user }}"
+        mode: 0755
+        recurse: yes
+    - name: Add values.yaml file for kubernetes-dashboard
+      ansible.builtin.template:
+        backup: no
+        dest: /tmp/helm/kubernetes-dashboard/values.yaml
+        group: "{{ addons_system_group }}"
+        owner: "{{ addons_system_user }}"
+        mode: 0755
+        src: "{{role_path}}/templates/helm/kubernetes-dashboard-values.yaml.j2"
+    - name: Add kubernetes-dashboard's helm repository
+      kubernetes.core.helm_repository:
+        binary_path: "/snap/bin/helm"
+        name: "{{ addon_kubernetes_dashboard_repo_name }}"
+        repo_url: "{{ addon_kubernetes_dashboard_repo_url }}"
+    - name: Deploy kubernetes dashboard
+      kubernetes.core.helm:
+        binary_path: "/snap/bin/helm"
+        release_name: "{{ addon_kubernetes_dashboard_release_name }}"
+        chart_ref: "{{ addon_kubernetes_dashboard_chart_ref }}"
+        chart_version: "{{ addon_kubernetes_dashboard_chart_version }}"
+        update_repo_cache: true
+        release_namespace: "{{ addon_kubernetes_dashboard_release_namespace }}"
+        create_namespace: true
+        history_max: 10
+        atomic: no
+        release_state: present
+        values_files:
+          - /tmp/helm/kubernetes-dashboard/values.yaml
   when: addon_kubernetes_dashboard_enabled is true
+  tags:
+    - addon/kubernetes-dashboard
+
+## Cert Manager
+- name: Install cert-manager
+  block:
+    - name: Add cert-manager's helm repo
+      kubernetes.core.helm_repository:
+        binary_path: "/snap/bin/helm"
+        name: "{{ addon_cert_manager_repo_name }}"
+        repo_url: "{{ addon_cert_manager_repo_url }}"
+    - name: Install cert-manager CRDs
+      command: "kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v{{ addon_cert_manager_chart_version }}/cert-manager.crds.yaml"
+      changed_when: false
+    - name: Deploy cert-manager
+      kubernetes.core.helm:
+        binary_path: "/snap/bin/helm"
+        release_name: "{{ addon_cert_manager_release_name }}"
+        chart_ref: "{{ addon_cert_manager_chart_ref }}"
+        chart_version: "{{ addon_cert_manager_chart_version }}"
+        update_repo_cache: true
+        release_namespace: "{{ addon_cert_manager_release_namespace }}"
+        create_namespace: true
+        history_max: 10
+        atomic: no
+        release_state: present
+  when: addon_cert_manager_enabled is true or addon_vsc_enabled is true
+  tags:
+    - addon/cert-manager
+    - addon/volume-snapshot-controller
+
+## Volume snapshot controller - Required for enabling volume-snapshot feature in kubernetes - cert-manager is required as a dependency
+- name: Install volume snapshot controller
+  block:
+    - name: Checkout kubernetes-csi/external-snapshotter repo
+      ansible.builtin.git:
+        repo: "{{ addon_vsc_repo_url }}"
+        dest: "{{ addon_vsc_repo_checkout_directory }}"
+        version: v5.0.1
+    - name: Add volume snapshot CRDs to the cluster
+      shell: "kubectl kustomize {{ addon_vsc_repo_checkout_directory }}/client/config/crd | kubectl create -f -"
+      changed_when: false
+    - name: Deploy volume snapshot controller to the cluster in kube-system namespace
+      shell: "kubectl -n kube-system kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/snapshot-controller | kubectl create -f -"
+    - name: Add snapshot validation webhook configuration
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example/{{ item.path }}"
+        group: "{{ addons_system_group }}"
+        owner: "{{ addons_system_user }}"
+        mode: 0644
+      with_filetree: "{{ role_path }}/templates/kubernetes"
+      when: item.state == 'file'
+    - name: Deploy snapshot validation webhook
+      shell: "kubectl -n kube-system kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example | kubectl create -f -"
+  when: addon_vsc_enabled is true
+  tags:
+    - addon/volume-snapshot-controller
