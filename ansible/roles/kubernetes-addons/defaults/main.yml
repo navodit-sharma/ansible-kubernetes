@@ -36,17 +36,18 @@ addon_cert_manager_chart_ref: "{{ addon_cert_manager_repo_name }}/cert-manager"
 addon_cert_manager_chart_version: "1.8.0"
 addon_cert_manager_release_namespace: "cert-manager"
 
-# Volume snapshot controller
+# Volume snapshot controller (vsc)
 addon_vsc_enabled: true
+addon_vsc_namespace: "kube-system"
 addon_vsc_repo_url: 'https://github.com/kubernetes-csi/external-snapshotter.git'
 addon_vsc_repo_tag: "v5.0.1"
 addon_vsc_repo_checkout_directory: "/tmp/external-snapshotter"
 addon_vsc_snapshot_validation_webhook_name: "snapshot-validation"
-addon_vsc_snapshot_validation_webhook_namespace: "kube-system"
-addon_vsc_snapshot_validation_webhook_issuer_name: "{{ addon_snapshot_validation_webhook_name }}"
-addon_vsc_snapshot_validation_webhook_issuer_namespace: "{{ addon_snapshot_validation_webhook_namespace }}"
-addon_vsc_snapshot_validation_webhook_certificate_name: "{{ addon_snapshot_validation_webhook_name }}"
-addon_vsc_snapshot_validation_webhook_certificate_namespace: "{{ addon_snapshot_validation_webhook_namespace }}"
-addon_vsc_snapshot_validation_webhook_certificate_secret_name: "{{ addon_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_issuer_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_issuer_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_certificate_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_certificate_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_certificate_secret_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
 addon_vsc_snapshot_validation_webhook_dns_names:
-  - "{{ addon_snapshot_validation_webhook_name }}.{{ addon_snapshot_validation_webhook_namespace }}"
+  - "{{ addon_vsc_snapshot_validation_webhook_name }}.{{ addon_vsc_snapshot_validation_webhook_namespace }}"

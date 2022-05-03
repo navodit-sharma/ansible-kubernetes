@@ -145,22 +145,25 @@
         repo: "{{ addon_vsc_repo_url }}"
         dest: "{{ addon_vsc_repo_checkout_directory }}"
         version: v5.0.1
+        force: yes
     - name: Add volume snapshot CRDs to the cluster
-      shell: "kubectl kustomize {{ addon_vsc_repo_checkout_directory }}/client/config/crd | kubectl create -f -"
+      shell: "kubectl kustomize {{ addon_vsc_repo_checkout_directory }}/client/config/crd | kubectl apply -f -"
       changed_when: false
     - name: Deploy volume snapshot controller to the cluster in kube-system namespace
-      shell: "kubectl -n kube-system kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/snapshot-controller | kubectl create -f -"
+      shell: "kubectl -n {{ addon_vsc_namespace }} kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/snapshot-controller | kubectl apply -f -"
+      changed_when: false
     - name: Add snapshot validation webhook configuration
       template:
         src: "{{ item.src }}"
-        dest: "{{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example/{{ item.path }}"
+        dest: "{{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example/{{ item.path | replace('.j2','') }}"
         group: "{{ addons_system_group }}"
         owner: "{{ addons_system_user }}"
         mode: 0644
       with_filetree: "{{ role_path }}/templates/kubernetes"
       when: item.state == 'file'
     - name: Deploy snapshot validation webhook
-      shell: "kubectl -n kube-system kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example | kubectl create -f -"
+      shell: "kubectl -n {{ addon_vsc_namespace }} kustomize {{ addon_vsc_repo_checkout_directory }}/deploy/kubernetes/webhook-example | kubectl apply -f -"
+      changed_when: false
   when: addon_vsc_enabled is true
   tags:
     - addon/volume-snapshot-controller

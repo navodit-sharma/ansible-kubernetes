@@ -18,7 +18,7 @@ metadata:
 spec:
   secretName: {{ addon_vsc_snapshot_validation_webhook_certificate_secret_name }}
   subject:
-    organisations:
+    organizations:
     - {{ addon_vsc_snapshot_validation_webhook_name }}
   dnsNames:
   {{ addon_vsc_snapshot_validation_webhook_dns_names | to_nice_yaml(indent=2) | indent(2) | trim }}
