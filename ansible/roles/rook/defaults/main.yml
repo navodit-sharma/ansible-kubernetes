@@ -404,10 +404,7 @@ rook_ceph_cluster_storage:
   useAllDevices: false
   deviceFilter:
   config:
-    crushRoot: "custom-root"
-    metadataDevice: "md0"
-    databaseSizeMB: "1024"
-    journalSizeMB: "1024"
+    metadataDevice:
     osdsPerDevice: "1"
     encryptedDevice: "false"
   nodes: |
@@ -513,6 +510,17 @@ rook_ceph_objectstore_gateway:
   # sslCertificateRef:
   instances: 1
   priorityClassName: system-cluster-critical
+  placement:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: valamis.com/dedicated
+              operator: In
+              values:
+              - storage
+    tolerations: |
+      {{ rook_operator_tolerations }}
 rook_ceph_objectstore_healthcheck_bucket_interval: 60s
 rook_ceph_objectstore_storageclass_enabled: "true"
 rook_ceph_objectstore_storageclass_name: "rook-ceph-object"
