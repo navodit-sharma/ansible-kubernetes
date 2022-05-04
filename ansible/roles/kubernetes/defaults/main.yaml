@@ -44,3 +44,8 @@ kubernetes_enforce_node_allocatable: [pods]
 kubernetes_server_tls_bootstrap: true
 kubernetes_kubeproxy_mode: "ipvs"
 kubernetes_kubeproxy_ipvs_scheduler: ""
+kubernetes_krs_enabled: true
+kubernetes_krs_namespace: "kube-system"
+kubernetes_krs_repo_url: 'https://github.com/kontena/kubelet-rubber-stamp.git'
+kubernetes_krs_repo_tag: "v0.3.0"
+kubernetes_krs_repo_checkout_directory: "/tmp/kubelet-rubber-stamp"

@@ -86,7 +86,8 @@
     mode: 0644
 
 - name: Setup kubernetes minion
-  command: "{{ kubeadmJoinCommand.stdout }} --config /etc/kubernetes/kubeadm-config.yaml"
+  command: "{{ kubeadmJoinCommand.stdout }}"
+  # command: "{{ kubeadmJoinCommand.stdout }} --config /etc/kubernetes/kubeadm-config.yaml"
   register: kubeadmJoinResult
   ignore_errors: true
   when: preflightChecks is succeeded
