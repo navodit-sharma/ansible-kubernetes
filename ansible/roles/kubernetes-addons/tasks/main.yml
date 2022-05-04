@@ -23,6 +23,7 @@
     - addon/metrics-server
     - addon/kubernetes-dashboard
     - addon/cert-manager
+    - addon/volume-snapshot-controller
 
 ## Metrics server
 - name: Install Metrics server
@@ -144,7 +145,7 @@
       ansible.builtin.git:
         repo: "{{ addon_vsc_repo_url }}"
         dest: "{{ addon_vsc_repo_checkout_directory }}"
-        version: v5.0.1
+        version: {{ addon_vsc_repo_tag }}
         force: yes
     - name: Add volume snapshot CRDs to the cluster
       shell: "kubectl kustomize {{ addon_vsc_repo_checkout_directory }}/client/config/crd | kubectl apply -f -"
