@@ -127,6 +127,7 @@
       - python3-pip
       - jq
       - git
+      - lvm2
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
