@@ -3,6 +3,22 @@
 # Common
 rook_ceph_version: 1.9.1
 rook_ceph_namespace: "rook-ceph"
+rook_system_group: root
+rook_system_user: root
+
+rook_operator_repo_name: rook-release
+rook_operator_repo_url: "https://charts.rook.io/release"
+rook_operator_chart_ref: "{{ rook_operator_repo_name }}/rook-ceph"
+rook_operator_chart_version: "{{ rook_ceph_version }}"
+rook_operator_release_name: "rook-ceph"
+rook_operator_release_namespace: "rook-ceph"
+
+rook_cephcluster_repo_name: rook-release
+rook_cephcluster_repo_url: "https://charts.rook.io/release"
+rook_cephcluster_chart_ref: "{{ rook_operator_repo_name }}/rook-ceph-cluster"
+rook_cephcluster_chart_version: "{{ rook_ceph_version }}"
+rook_cephcluster_release_name: "rook-ceph-cluster"
+rook_cephcluster_release_namespace: "rook-ceph"
 
 # Operator helm values
 rook_operator_crds_enabled: "true"
@@ -278,7 +294,7 @@ rook_ceph_toolbox_resources:
   requests:
     cpu: "100m"
     memory: "128Mi"
-rook_ceph_toolbox_priorityclass: "valamis-third-class"
+rook_ceph_toolbox_priorityclass: "system-cluster-critical"
 rook_ceph_monitoring_enabled: "false"
 rook_ceph_monitoring_create_prometheus_rules: "false"
 rook_ceph_psp_enable: "true"
