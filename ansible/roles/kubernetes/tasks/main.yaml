@@ -5,6 +5,6 @@
 
 - name: "Kubernetes {{ node_type }} {{ task_type }}"
   include_tasks: "{{ role_path }}/tasks/{{ node_type }}-{{ task_type }}.yaml"
-
-# - name: "Kubernetes labels and taints"
-#   include_tasks: "{{ role_path }}/tasks/labels-and-taints.yaml"
+  tags:
+    - feature/weave-sdn
+    - feature/kubelet-rubber-stamp

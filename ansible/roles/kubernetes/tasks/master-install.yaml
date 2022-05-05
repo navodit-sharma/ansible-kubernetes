@@ -156,12 +156,22 @@
 # Kubelet rubber stamp (KRS)
 - name: Install kubelet rubber stamp
   block:
-    - name: Checkout kontena/kubelet-rubber-stamp repo
+    - name: Checkout KRS (kontena/kubelet-rubber-stamp) repo
       ansible.builtin.git:
         repo: "{{ kubernetes_krs_repo_url }}"
         dest: "{{ kubernetes_krs_repo_checkout_directory }}"
-        version: {{ kubernetes_krs_repo_tag }}
+        version: "{{ kubernetes_krs_repo_tag }}"
         force: yes
+    - name: Add KRS configuration
+      template:
+        src: "{{ role_path }}/templates/master/krs/kustomization.yaml.j2"
+        dest: "{{ kubernetes_krs_repo_checkout_directory }}/deploy/kustomization.yaml"
+        group: "{{ kubernetes_system_group }}"
+        owner: "{{ kubernetes_system_user }}"
+        mode: 0644
+    - name: Deploy KRS
+      shell: "kubectl -n {{ kubernetes_krs_namespace }} kustomize {{ kubernetes_krs_repo_checkout_directory }}/deploy | kubectl apply -f -"
+      changed_when: false
   when: kubernetes_krs_enabled is true or kubernetes_server_tls_bootstrap is true
   tags:
     - feature/kubelet-rubber-stamp

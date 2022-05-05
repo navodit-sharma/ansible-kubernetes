@@ -145,7 +145,7 @@
       ansible.builtin.git:
         repo: "{{ addon_vsc_repo_url }}"
         dest: "{{ addon_vsc_repo_checkout_directory }}"
-        version: {{ addon_vsc_repo_tag }}
+        version: "{{ addon_vsc_repo_tag }}"
         force: yes
     - name: Add volume snapshot CRDs to the cluster
       shell: "kubectl kustomize {{ addon_vsc_repo_checkout_directory }}/client/config/crd | kubectl apply -f -"
