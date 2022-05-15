@@ -2,4 +2,5 @@
 
 - name: Ubuntu OS setup
   include_tasks: "{{ role_path }}/tasks/ubuntu.yaml"
-  when: ansible_distribution == "Ubuntu"
+  tags:
+    - feature/firewall

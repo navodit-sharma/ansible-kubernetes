@@ -21,3 +21,7 @@ os_sysctl_ipv6_disable:
     value: 1
 
 os_snapd_refresh_timer: "mon,thu,00:00"
+
+os_firewall_default_incoming_policy: "deny"
+os_firewall_default_outgoing_policy: "allow"
+os_firewall_default_forward_policy: "allow"

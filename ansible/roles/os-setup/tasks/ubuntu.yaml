@@ -13,7 +13,7 @@
     state: present
     value: "{{ item.value }}"
   with_items: "{{ os_sysctl_ipv6_disable }}"
-  when: ipv6Enabled.stdout == 0
+  when: ipv6Enabled.stdout == "0"
 
 - name: Disable IPV6 module in GRUB config
   template:
@@ -191,6 +191,38 @@
 - name: Update snapd refresh timer
   command: "snap set system refresh.timer={{ os_snapd_refresh_timer }}"
   changed_when: false
+
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow SSH access
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '22'
+      proto: tcp
+      comment: "SSH"
+  - name: Set logging
+    community.general.ufw:
+      logging: 'on'
+  - name: Set default INCOMING policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_incoming_policy }}"
+      direction: incoming
+  - name: Set default OUTGOING policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_outgoing_policy }}"
+      direction: outgoing
+  - name: Set default FORWARD policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_forward_policy }}"
+      direction: routed
+  - name: Enable firewall
+    community.general.ufw:
+      state: enabled
+  tags:
+    - feature/firewall
 
 # Flush handlers
 - name: Execute handlers
