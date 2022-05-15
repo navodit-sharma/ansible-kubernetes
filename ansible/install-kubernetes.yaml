@@ -1,8 +1,7 @@
 ---
-
+- import_playbook: playbooks/os-setup.yaml
+- import_playbook: playbooks/containerd.yaml
 - import_playbook: playbooks/kubernetes-master-install.yaml
 - import_playbook: playbooks/kubernetes-minion-install.yaml
-# - import_playbook: playbooks/rook-ceph-client.yaml
-# - import_playbook: playbooks/rook-ceph-server.yaml
-# - import_playbook: playbooks/postgresql.yaml
-# - import_playbook: playbooks/haproxy.yaml
+- import_playbook: playbooks/kubernetes-addons.yaml
+- import_playbook: playbooks/rook.yaml
