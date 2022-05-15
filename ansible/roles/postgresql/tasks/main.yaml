@@ -1,4 +1,16 @@
 ---
+# Firewall (UFW)
+- name: Allow access to Postgresql in firewall
+  community.general.ufw:
+    rule: allow
+    direction: in
+    interface: "{{ network_interface }}"
+    port: '5432'
+    proto: tcp
+    log: no
+    comment: "PostgreSQL"
+  tags:
+    - feature/firewall
 
 - name: add postgresql repository apt-key
   apt_key:
