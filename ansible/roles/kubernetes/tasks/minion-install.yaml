@@ -1,4 +1,80 @@
 
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow access to kubelet
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '10250'
+      proto: tcp
+      log: no
+      comment: "Kubernetes kubelet"
+  - name: Allow access to kube-proxy
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: 30000:32767
+      proto: udp
+      log: no
+      comment: "Kubernetes kube-proxy"
+  - name: Allow access to weave/tcp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '6783'
+      proto: tcp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/udp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: 6783:6784
+      proto: udp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/sdn
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: weave
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to node-exporter
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '9100'
+      proto: tcp
+      log: no
+      comment: "Monitoring node-exporter"
+  - name: Allow access to kube-state-metrics
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '8080'
+      proto: tcp
+      log: no
+      comment: "Monitoring kube-state-metrics"
+  - name: Allow access to multicast traffic
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      to_ip: 224.0.0.0/4
+      proto: igmp
+      log: no
+      comment: "Multicast"
+  tags:
+    - feature/firewall
+
 # Unhold kubernetes packages if required
 - name: Unhold kubernetes packages
   command: apt-mark unhold "{{ item }}"
@@ -77,17 +153,8 @@
       - "kubeadm reset -f"
   when: preflightChecks.stderr.find('ERROR FileAvailable') != -1 or preflightChecks.stderr.find('ERROR Port') != -1
 
-- name: Add kubeadm configuration
-  template:
-    src: "{{ role_path }}/templates/minion/kubernetes/kubeadm-config.yaml.j2"
-    dest: /etc/kubernetes/kubeadm-config.yaml
-    group: "{{ kubernetes_system_group }}"
-    owner: "{{ kubernetes_system_user }}"
-    mode: 0644
-
 - name: Setup kubernetes minion
   command: "{{ kubeadmJoinCommand.stdout }}"
-  # command: "{{ kubeadmJoinCommand.stdout }} --config /etc/kubernetes/kubeadm-config.yaml"
   register: kubeadmJoinResult
   ignore_errors: true
   when: preflightChecks is succeeded

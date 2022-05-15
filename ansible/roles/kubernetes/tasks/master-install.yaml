@@ -1,4 +1,71 @@
 
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow access to api-server
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '6443'
+      proto: tcp
+      log: no
+      comment: "Kubernetes api-server"
+  - name: Allow access to kubelet
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '10250'
+      proto: tcp
+      log: no
+      comment: "Kubernetes kubelet"
+  - name: Allow access to weave/tcp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '6783'
+      proto: tcp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/udp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: 6783:6784
+      proto: udp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/sdn
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: weave
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to node-exporter
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '9100'
+      proto: tcp
+      log: no
+      comment: "Monitoring node-exporter"
+  - name: Allow access to multicast traffic
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      to_ip: 224.0.0.0/4
+      proto: igmp
+      log: no
+      comment: "Multicast"
+  tags:
+    - feature/firewall
+
 # Unhold kubernetes packages if required
 - name: Unhold kubernetes packages
   command: apt-mark unhold "{{ item }}"

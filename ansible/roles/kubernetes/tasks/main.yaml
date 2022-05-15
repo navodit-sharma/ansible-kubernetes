@@ -8,3 +8,4 @@
   tags:
     - feature/weave-sdn
     - feature/kubelet-rubber-stamp
+    - feature/firewall

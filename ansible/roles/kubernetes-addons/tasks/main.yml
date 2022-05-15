@@ -18,6 +18,10 @@
         channel: "{{ addon_helm_version }}/stable"
         classic: yes
         state: present
+    - name: Install Helm Diff
+      kubernetes.core.helm_plugin:
+        state: present
+        plugin_path: https://github.com/databus23/helm-diff
   tags:
     - addon/helm
     - addon/metrics-server
