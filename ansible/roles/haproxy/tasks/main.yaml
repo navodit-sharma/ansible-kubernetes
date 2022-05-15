@@ -26,5 +26,35 @@
     state: started
     no_block: no
 
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow http port
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '80'
+      proto: tcp
+      comment: "Haproxy http"
+  - name: Allow https port
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '443'
+      proto: tcp
+      comment: "Haproxy https"
+  - name: Allow haproxy stats port
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '8080'
+      proto: tcp
+      comment: "Haproxy stats"
+  tags:
+    - feature/firewall
+
 - name: Execute handlers
   meta: flush_handlers
