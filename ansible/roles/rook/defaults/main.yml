@@ -502,7 +502,7 @@ rook_ceph_blockpool_snapshotclass_is_default: "true"
 rook_ceph_blockpool_snapshotclass_deletion_policy: Delete
 rook_ceph_blockpool_snapshotclass_parameters:
 rook_ceph_filesystem_snapshotclass_enabled: "true"
-rook_ceph_filesystem_snapshotclass_name: "rook-ceph-block"
+rook_ceph_filesystem_snapshotclass_name: "rook-ceph-filesystem"
 rook_ceph_filesystem_snapshotclass_is_default: "false"
 rook_ceph_filesystem_snapshotclass_deletion_policy: Delete
 rook_ceph_filesystem_snapshotclass_parameters:
