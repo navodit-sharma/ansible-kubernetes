@@ -63,8 +63,12 @@
 
 - name: Install containerd.io
   apt:
-    name: containerd.io
+    name: "{{ packages }}"
     state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "containerd.io={{ containerd_version }}"
   notify: Restart containerd.service
 
 - name: Hold containerd package at current version

@@ -1,5 +1,7 @@
 containerd_system_user: "root"
 containerd_system_group: "root"
+
+containerd_version: 1.5.11-1
 containerd_storage_device: "/dev/xvdb"
 containerd_data_dir: "/var/lib/containerd"
 containerd_config_dir: "/etc/containerd"
