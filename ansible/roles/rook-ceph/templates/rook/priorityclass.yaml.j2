@@ -1,8 +1,0 @@
----
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: {{ rook_k8s_priority_class_name }}
-value: {{ rook_k8s_priority_class_value }}
-globalDefault: false
-description: "This priority class should be used only for storage related resources."
