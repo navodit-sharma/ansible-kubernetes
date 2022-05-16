@@ -206,7 +206,7 @@
     command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/aux= --overwrite=true"
     changed_when: false
   - name: Set SHARED label on node
-    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=shared --overwrite=true"
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=kafka --overwrite=true"
     changed_when: false
   - name: Add DEDICATED-SHARED-NOSCHEDULE taint on node
     command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=shared:NoSchedule --overwrite=true"
