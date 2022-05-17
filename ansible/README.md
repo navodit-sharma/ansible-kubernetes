@@ -2,7 +2,7 @@
 # Introduction
 Ansible playbooks for installing **Kubernetes** on **Onprem/Bare-metal Ubuntu** machines.
 
-## Version matrix [Deprecated]
+## Version matrix -- _**[Deprecated]**_
 _**Docker**_ is no longer supported and has been replaced with _**Containerd**_. Check version matrix in next section.
 kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containerd.io
 -----------|---------|---------|---------|----------------|-----------|---------------
