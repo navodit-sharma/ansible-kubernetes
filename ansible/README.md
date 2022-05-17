@@ -2,7 +2,7 @@
 # Introduction
 Ansible playbooks for installing **Kubernetes** on **Onprem/Bare-metal Ubuntu** machines.
 
-## Version matrix [Deprecated]
+## Version matrix -- _**[Deprecated]**_
 _**Docker**_ is no longer supported and has been replaced with _**Containerd**_. Check version matrix in next section.
 kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containerd.io
 -----------|---------|---------|---------|----------------|-----------|---------------
@@ -78,7 +78,15 @@ ansible [core 2.12.1]
 # From the root of repository
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml
 ```
-
+## Upgrading Kubernetes
+**NOTE :**
+- Upgrade is only expected to work when initial installation of kubernetes was done with this same ansible playbook.
+### Steps
+1. Follow step 1 & 2 from _**Installing Kubernetes**_
+2. Run below command
+```
+ansible-playbook -i inventory/valpaas upgrade-kubernetes.yaml
+```
 ## List all available ansible tags
 ```
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml --list-tags
@@ -114,17 +122,6 @@ ansible-playbook -i inventory/valpaas playbooks/containerd.yaml --list-tags
 
 ansible-playbook -i inventory/valpaas playbooks/* --list-tags
 ```
-## Upgrading Kubernetes
-**NOTE :**
-- Upgrade is only expected to work when initial installation of kubernetes was done with this same ansible playbook.
-
-### Steps
-1. Follow step 1 & 2 from _**Installing Kubernetes**_
-2. Run below command
-```
-ansible-playbook -i inventory/valpaas upgrade-kubernetes.yaml
-```
-
 ## Installing selective components
 It is possible to selectively install certain components while skipping others using ansible tags feature.
 ### To install only kubernetes and nothing else
