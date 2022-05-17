@@ -22,6 +22,29 @@
       kubernetes.core.helm_plugin:
         state: present
         plugin_path: https://github.com/databus23/helm-diff
+    - name: Add helm bash-completion
+      shell: "helm completion bash > /etc/bash_completion.d/helm"
+      changed_when: false
+    - name: Checkout ahmetb/kubectx repo
+      ansible.builtin.git:
+        repo: "{{ addon_kubectx_repo_url }}"
+        dest: "{{ addon_kubectx_repo_checkout_directory }}"
+        version: "{{ addon_kubectx_repo_tag }}"
+        force: yes
+    - name: Create symbolic link for kubectx
+      ansible.builtin.file:
+          src: "{{ addon_kubectx_repo_checkout_directory }}/kubectx"
+          dest: /usr/local/bin/kubectx
+          owner: "{{ addons_system_user }}"
+          group: "{{ addons_system_group }}"
+          state: link
+    - name: Create symbolic link for kubens
+      ansible.builtin.file:
+          src: "{{ addon_kubectx_repo_checkout_directory }}/kubens"
+          dest: /usr/local/bin/kubens
+          owner: "{{ addons_system_user }}"
+          group: "{{ addons_system_group }}"
+          state: link
   tags:
     - addon/helm
     - addon/metrics-server

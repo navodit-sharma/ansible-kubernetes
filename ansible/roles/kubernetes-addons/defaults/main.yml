@@ -6,6 +6,11 @@ addons_system_user: root
 # Helm
 addon_helm_version: 3.7
 
+# kubectx
+addon_kubectx_repo_url: 'https://github.com/ahmetb/kubectx.git'
+addon_kubectx_repo_checkout_directory: '/opt/kubectx'
+addon_kubectx_repo_tag: 'v0.9.4'
+
 # Metrics server
 addon_metric_server_enabled: true
 addon_metric_server_repo_name: "metrics-server"
