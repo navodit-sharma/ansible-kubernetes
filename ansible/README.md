@@ -16,8 +16,8 @@ kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containe
 ## Version matrix
 Kubernetes | Kubeadm/Kubelet/Kubectl | Containerd
 -----------|-----------|-----------|
+1.21.12 | 1.21.12-00 | 1.5.11-1 |
 1.22.9 | 1.22.9-00 | 1.5.11-1 |
-
 ## Various components
 There are multiple components that can be installed using this playbook altogether or individually. All components are listed below.
 - Containerd
