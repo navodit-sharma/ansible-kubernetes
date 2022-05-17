@@ -197,7 +197,7 @@
   - name: Add DEDICATED-STORAGE-NOSCHEDULE taint on node
     command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=storage:NoSchedule --overwrite=true"
     changed_when: false
-  when: inventory_hostname in groups['storage']
+  when: inventory_hostname in groups['storage'] and kubernetes_taint_storage_nodes is true
   delegate_to: "{{ groups['master'][0] }}"
 
 - name: Add label and taints to SHARED services nodes
