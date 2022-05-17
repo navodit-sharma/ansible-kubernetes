@@ -128,6 +128,8 @@
       - jq
       - git
       - lvm2
+      - logrotate
+      - rsyslog
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
