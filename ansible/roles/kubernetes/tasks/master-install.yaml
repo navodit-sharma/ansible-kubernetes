@@ -220,28 +220,28 @@
   tags:
     - feature/weave-sdn
 
-# Kubelet rubber stamp (KRS)
-- name: Install kubelet rubber stamp
+# Kubelet rubber stamp (KCA)
+- name: Install kubelet csr approver
   block:
-    - name: Checkout KRS (kontena/kubelet-rubber-stamp) repo
+    - name: Checkout KCA (kubelet-csr-approver) repo
       ansible.builtin.git:
-        repo: "{{ kubernetes_krs_repo_url }}"
-        dest: "{{ kubernetes_krs_repo_checkout_directory }}"
-        version: "{{ kubernetes_krs_repo_tag }}"
+        repo: "{{ kubernetes_kca_repo_url }}"
+        dest: "{{ kubernetes_kca_repo_checkout_directory }}"
+        version: "{{ kubernetes_kca_repo_tag }}"
         force: yes
     - name: Add KRS configuration
       template:
-        src: "{{ role_path }}/templates/master/krs/kustomization.yaml.j2"
-        dest: "{{ kubernetes_krs_repo_checkout_directory }}/deploy/kustomization.yaml"
+        src: "{{ role_path }}/templates/master/kca/kustomization.yaml.j2"
+        dest: "{{ kubernetes_kca_repo_checkout_directory }}/deploy/k8s/kustomization.yaml"
         group: "{{ kubernetes_system_group }}"
         owner: "{{ kubernetes_system_user }}"
         mode: 0644
-    - name: Deploy KRS
-      shell: "kubectl -n {{ kubernetes_krs_namespace }} kustomize {{ kubernetes_krs_repo_checkout_directory }}/deploy | kubectl apply -f -"
+    - name: Deploy KCA
+      shell: "kubectl -n {{ kubernetes_kca_namespace }} kustomize {{ kubernetes_kca_repo_checkout_directory }}/deploy/k8s | kubectl apply -f -"
       changed_when: false
-  when: kubernetes_krs_enabled is true or kubernetes_server_tls_bootstrap is true
+  when: kubernetes_kca_enabled is true or kubernetes_server_tls_bootstrap is true
   tags:
-    - feature/kubelet-rubber-stamp
+    - feature/kubelet-csr-approver
 
 - name: Execute handlers
   meta: flush_handlers

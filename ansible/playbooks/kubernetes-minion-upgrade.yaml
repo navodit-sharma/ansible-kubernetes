@@ -2,7 +2,7 @@
 
 - name: Kubernetes minion upgrade
   hosts: minion
-  serial: 2
+  serial: 3
   remote_user: root
   become: true
   any_errors_fatal: true

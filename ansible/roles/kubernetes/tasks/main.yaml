@@ -7,5 +7,5 @@
   include_tasks: "{{ role_path }}/tasks/{{ node_type }}-{{ task_type }}.yaml"
   tags:
     - feature/weave-sdn
-    - feature/kubelet-rubber-stamp
+    - feature/kubelet-csr-approver
     - feature/firewall

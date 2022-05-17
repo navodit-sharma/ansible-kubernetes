@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: {{ kubernetes_kca_namespace }}
+resources:
+- clusterrole.yaml
+- deployment.yaml
+- rolebinding.yaml
+- serviceaccount.yaml
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: kubelet-csr-approver
+        namespace: {{ kubernetes_kca_namespace }}
+      spec:
+        template:
+          spec:
+            containers:
+            - name: kubelet-csr-approver
+              env:
+                - name: PROVIDER_REGEX
+                  value: {{ kubernetes_kca_provider_regex }}
+                - name: PROVIDER_IP_PREFIXES
+                  value: "{{ kubernetes_kca_provider_ip_prefixes }}"
+                - name: MAX_EXPIRATION_SECONDS
+                  value: "{{ kubernetes_kca_max_expiration_seconds }}" # 366 days
+                - name: BYPASS_DNS_RESOLUTION
+                  value: "{{ kubernetes_kca_bypass_dns_resolution }}"
+              imagePullPolicy: IfNotPresent
+            nodeSelector:

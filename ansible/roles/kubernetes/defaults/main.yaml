@@ -44,8 +44,12 @@ kubernetes_enforce_node_allocatable: [pods]
 kubernetes_server_tls_bootstrap: true
 kubernetes_kubeproxy_mode: "ipvs"
 kubernetes_kubeproxy_ipvs_scheduler: ""
-kubernetes_krs_enabled: true
-kubernetes_krs_namespace: "kube-system"
-kubernetes_krs_repo_url: 'https://github.com/kontena/kubelet-rubber-stamp.git'
-kubernetes_krs_repo_tag: "v0.3.0"
-kubernetes_krs_repo_checkout_directory: "/tmp/kubelet-rubber-stamp"
+kubernetes_kca_enabled: true
+kubernetes_kca_namespace: "kube-system"
+kubernetes_kca_repo_url: 'https://github.com/postfinance/kubelet-csr-approver.git'
+kubernetes_kca_repo_tag: "v0.2.2"
+kubernetes_kca_repo_checkout_directory: "/tmp/kubelet-csr-approver"
+kubernetes_kca_provider_regex: "^[a-z0-9]*\\.valamis\\.local$"
+kubernetes_kca_provider_ip_prefixes: "0.0.0.0/0"
+kubernetes_kca_max_expiration_seconds: "31622400"
+kubernetes_kca_bypass_dns_resolution: "false"
