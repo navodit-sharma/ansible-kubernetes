@@ -78,6 +78,7 @@ ansible [core 2.12.1]
 # From the root of repository
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml
 ```
+Upon successful execution you should have a working kubernetes cluster.
 ## Upgrading Kubernetes
 **NOTE :**
 - Upgrade is only expected to work when initial installation of kubernetes was done with this same ansible playbook.
@@ -87,6 +88,7 @@ ansible-playbook -i inventory/valpaas install-kubernetes.yaml
 ```
 ansible-playbook -i inventory/valpaas upgrade-kubernetes.yaml
 ```
+Upon successful execution you should have a working kubernetes cluster.
 ## List all available ansible tags
 ```
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml --list-tags
