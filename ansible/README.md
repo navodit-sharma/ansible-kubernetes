@@ -1,18 +1,6 @@
 
 # Introduction
 Ansible playbooks for installing **Kubernetes** on **Onprem/Bare-metal Ubuntu** machines.
-
-## Version matrix -- _**[Deprecated]**_
-_**Docker**_ is no longer supported and has been replaced with _**Containerd**_. Check version matrix in next section.
-kubernetes | kubeadm | kubectl | kubelet | kubernetes-cni | docker-ce | containerd.io
------------|---------|---------|---------|----------------|-----------|---------------
-1.14.2 | 1.14.2-00 | 1.14.2-00 | 1.14.2-00 | 0.7.5-00 | 5:18.09.6~3-0~ubuntu-bionic | 1.2.5-1
-1.14.10 | 1.14.10-00 | 1.14.10-00 | 1.14.10-00 | 0.7.5-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
-1.15.12 | 1.15.12-00 | 1.15.12-00 | 1.15.12-00 | 0.7.5-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
-1.16.12 | 1.16.12-00 | 1.16.12-00 | 1.16.12-00 | 0.8.6-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
-1.17.7 | 1.17.7-01 | 1.17.7-01 | 1.17.7-01 | 0.8.6-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
-1.17.9 | 1.17.9-00 | 1.17.9-00 | 1.17.9-00 | 0.8.6-00 | 5:19.03.11~3-0~ubuntu-bionic | 1.2.13-2
-
 ## Version matrix
 Kubernetes | Kubeadm/Kubelet/Kubectl | Containerd
 -----------|-----------|-----------|
@@ -141,7 +129,7 @@ This is useful when you are introducing a new minion into an existing cluster.
 ```
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml --tags "k8s-minion-install"
 ```
-### To install Storage (rook-ceph) into a kubernetes cluster
+### To install Storage (rook-ceph) cluster to a kubernetes cluster
 ```
 ansible-playbook -i inventory/valpaas install-kubernetes.yaml --tags "storage"
 ```
@@ -163,18 +151,3 @@ playbook: playbooks/rook.yaml
 # To execute selective parts of storage playbook
 ansible-playbook -i inventory/valpaas playbooks/rook.yaml --tags "rook/helm-config-only"
 ```
-## Current release contains
-- [x] Finalizing use of /etc/resolv.conf symbolic link
-- [x] Automatic update of helm client package
-- [x] Kubectl bash completion
-- [x] Helm bash completion
-- [x] kubectx and kubens install
-- [x] metrics-server
-- [x] k8s-dashboard
-- [x] docker replaced with containerd
-- [x] replace iptables with ufw
-- [x] kube-proxy using IPVS mode instead of proxy mode
-- [x] Update Readme
-## TODOs for upcoming release
-- [] postgresql logging update
-- [] Haproxy's ansible role - logging update (logrotate & logs to file)
