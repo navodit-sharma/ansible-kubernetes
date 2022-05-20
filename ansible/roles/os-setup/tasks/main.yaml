@@ -1,0 +1,6 @@
+---
+
+- name: Ubuntu OS setup
+  include_tasks: "{{ role_path }}/tasks/ubuntu.yaml"
+  tags:
+    - feature/firewall

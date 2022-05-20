@@ -1,0 +1,58 @@
+---
+# Common
+addons_system_group: root
+addons_system_user: root
+
+# Helm
+addon_helm_version: 3.7
+
+# kubectx
+addon_kubectx_repo_url: 'https://github.com/ahmetb/kubectx.git'
+addon_kubectx_repo_checkout_directory: '/opt/kubectx'
+addon_kubectx_repo_tag: 'v0.9.4'
+
+# Metrics server
+addon_metric_server_enabled: true
+addon_metric_server_repo_name: "metrics-server"
+addon_metric_server_repo_url: "https://kubernetes-sigs.github.io/metrics-server/"
+addon_metric_server_chart_ref: "{{ addon_metric_server_repo_name }}/metrics-server"
+addon_metric_server_chart_version: "3.7.0"
+addon_metric_server_release_name: "metrics-server"
+addon_metric_server_release_namespace: "kube-system"
+addon_metric_server_service_monitor_enabled: false
+
+# Kubernetes dashboard
+addon_kubernetes_dashboard_enabled: true
+addon_kubernetes_dashboard_repo_name: "kubernetes-dashboard"
+addon_kubernetes_dashboard_repo_url: "https://kubernetes.github.io/dashboard/"
+addon_kubernetes_dashboard_chart_ref: "{{ addon_kubernetes_dashboard_repo_name }}/kubernetes-dashboard"
+addon_kubernetes_dashboard_chart_version: "5.3.1"
+addon_kubernetes_dashboard_release_name: "kubernetes-dashboard"
+addon_kubernetes_dashboard_release_namespace: "kube-system"
+addon_kubernetes_dashboard_service_monitor_enabled: false
+addon_kubernetes_dashboard_metrics_scraper_enabled: true
+
+# Cert manager
+addon_cert_manager_enabled: true
+addon_cert_manager_repo_name: "jetstack"
+addon_cert_manager_repo_url: "https://charts.jetstack.io"
+addon_cert_manager_release_name: "cert-manager"
+addon_cert_manager_chart_ref: "{{ addon_cert_manager_repo_name }}/cert-manager"
+addon_cert_manager_chart_version: "1.8.0"
+addon_cert_manager_release_namespace: "cert-manager"
+
+# Volume snapshot controller (vsc)
+addon_vsc_enabled: true
+addon_vsc_namespace: "kube-system"
+addon_vsc_repo_url: 'https://github.com/kubernetes-csi/external-snapshotter.git'
+addon_vsc_repo_tag: "v5.0.1"
+addon_vsc_repo_checkout_directory: "/tmp/external-snapshotter"
+addon_vsc_snapshot_validation_webhook_name: "snapshot-validation"
+addon_vsc_snapshot_validation_webhook_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_issuer_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_issuer_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_certificate_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_certificate_namespace: "{{ addon_vsc_namespace }}"
+addon_vsc_snapshot_validation_webhook_certificate_secret_name: "{{ addon_vsc_snapshot_validation_webhook_name }}"
+addon_vsc_snapshot_validation_webhook_dns_names:
+  - "{{ addon_vsc_snapshot_validation_webhook_name }}.{{ addon_vsc_snapshot_validation_webhook_namespace }}"

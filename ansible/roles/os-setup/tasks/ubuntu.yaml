@@ -1,0 +1,231 @@
+---
+
+# Disable IPV6
+- name: Check IPv6 status
+  command: cat /sys/module/ipv6/parameters/disable
+  register: ipv6Enabled
+  changed_when: false
+
+- name: Disable IPV6 - sysctl config
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ os_sysctl_ipv6_disable }}"
+  when: ipv6Enabled.stdout == "0"
+
+- name: Disable IPV6 module in GRUB config
+  template:
+    src: "{{ role_path }}/templates/grub.j2"
+    dest: /etc/default/grub
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Update grub
+
+# Update and upgrade
+- name: Apt update & upgrade
+  apt:
+    upgrade: yes
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+  when: os_apt_update_and_upgrade is true
+
+# Gather package facts
+- name: Gather Package facts post upgrade
+  package_facts:
+    manager: apt
+
+# Timezone and time sync
+- name: Configure timezone
+  command: "timedatectl set-timezone {{ os_timezone }}"
+  changed_when: false
+  notify: Restart ntp and cron service
+
+- name: Turn off timesyncd service
+  command: "timedatectl set-ntp off"
+  changed_when: false
+  when: "'systemd-timesyncd' in ansible_facts.packages"
+
+- name: Disable systemd-timesyncd service
+  systemd:
+    name: systemd-timesyncd
+    daemon_reload: no
+    enabled: no
+    masked: yes
+    state: stopped
+    no_block: no
+  when: "'systemd-timesyncd' in ansible_facts.packages"
+
+- name: Disable chrony service
+  systemd:
+    name: chrony
+    daemon_reload: no
+    enabled: no
+    masked: yes
+    state: stopped
+    no_block: no
+  when: "'chrony' in ansible_facts.packages"
+
+- name: Install NTP client service package
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - ntp
+      - ntpdate
+  notify: Restart ntp and cron service
+
+- name: Create /var/lib/ntp directory
+  file:
+    path: /var/lib/ntp
+    state: directory
+    group: ntp
+    owner: ntp
+    mode: 0755
+    recurse: no
+
+- name: Configure NTP client service
+  template:
+    src: "{{ role_path }}/templates/ntp.conf.j2"
+    dest: /etc/ntp.conf
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Restart ntp and cron service
+
+- name: Ensure NTP service is enabled and started
+  systemd:
+    name: ntp
+    daemon_reload: no
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+# Installing necessary tools
+- name: Install base packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - net-tools
+      - dnsutils
+      - bash-completion
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - gnupg2
+      - software-properties-common
+      - python3-pip
+      - jq
+      - git
+      - lvm2
+      - logrotate
+      - rsyslog
+
+# Enable automated security updates
+- name: Install unattended-upgrades package
+  apt:
+    name: unattended-upgrades
+    state: present
+
+- name: Configure unattended-upgrades
+  template:
+    src: "{{ role_path }}/templates/50unattended-upgrades.j2"
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+
+- name: Configure unattended-upgrades frequency
+  template:
+    src: "{{ role_path }}/templates/20auto-upgrades.j2"
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    group: "{{ os_system_group }}"
+    owner: "{{ os_system_user }}"
+    mode: 0644
+    backup: yes
+
+# Remove unnecessary services
+- name: Uninstall unnecessary package(s)
+  apt:
+    name: "{{ packages }}"
+    state: absent
+  vars:
+    packages:
+      - network-manager
+      - resolvconf
+      - chrony
+      - libnss-resolve
+
+# Setup system-journal service
+- name: Create /var/log/journal directory
+  file:
+    group: systemd-journal
+    owner: "{{ os_system_user }}"
+    path: /var/log/journal
+    recurse: yes
+    state: directory
+
+- name: Set correct permission on /var/log/journal directory
+  command: systemd-tmpfiles --create --prefix /var/log/journal
+  changed_when: false
+  notify: Restart systemd-journald service
+
+- name: Ensure systemd-journald service is enabled and started
+  systemd:
+    name: systemd-journald
+    daemon_reload: no
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Update snapd refresh timer
+  command: "snap set system refresh.timer={{ os_snapd_refresh_timer }}"
+  changed_when: false
+
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow SSH access
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '22'
+      proto: tcp
+      comment: "SSH"
+  - name: Set logging
+    community.general.ufw:
+      logging: 'on'
+  - name: Set default INCOMING policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_incoming_policy }}"
+      direction: incoming
+  - name: Set default OUTGOING policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_outgoing_policy }}"
+      direction: outgoing
+  - name: Set default FORWARD policy
+    community.general.ufw:
+      default: "{{ os_firewall_default_forward_policy }}"
+      direction: routed
+  - name: Enable firewall
+    community.general.ufw:
+      state: enabled
+  tags:
+    - feature/firewall
+
+# Flush handlers
+- name: Execute handlers
+  meta: flush_handlers

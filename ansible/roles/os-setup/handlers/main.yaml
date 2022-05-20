@@ -1,0 +1,12 @@
+---
+
+- name: Restart ntp and cron service
+  include_tasks: tasks/restart-ntp-and-cron.yaml
+
+- name: Update grub
+  command: update-grub
+
+- name: Restart systemd-journald service
+  systemd:
+    name: systemd-journald
+    state: restarted

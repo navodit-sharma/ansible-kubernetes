@@ -1,0 +1,157 @@
+---
+
+- name: Setup docker storage
+  filesystem:
+    fstype: xfs
+    dev: "{{ docker_storage }}"
+    force: no
+    opts: "-n ftype=1"
+
+- name: Mount docker storage to /var/lib/docker
+  mount:
+    dump: '0'
+    fstab: /etc/fstab
+    fstype: xfs
+    opts: defaults
+    passno: '0'
+    path: /var/lib/docker
+    src: "{{ docker_storage }}"
+    state: mounted
+
+- name: Install dependencies for Docker
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg-agent
+      - gnupg2
+      - software-properties-common
+
+- name: Add Apt signing key
+  apt_key:
+    url: "{{ docker_apt_key_url }}"
+    state: present
+    validate_certs: false
+
+- name: Copy verifyFingerprint.sh
+  copy:
+    backup: yes
+    dest: /tmp/
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
+    mode: 0644
+    src: "{{ role_path }}/files/verifyFingerprint.sh"
+
+- name: Verify installed apt key
+  shell: sh /tmp/verifyFingerprint.sh
+  changed_when: false
+
+- name: Add Apt repository
+  apt_repository:
+    repo: deb [arch=amd64] {{ docker_deb_url }} {{ docker_deb_distro }} stable
+    state: present
+
+- name: Gathering package facts
+  package_facts:
+    manager: apt
+
+- name: Installing docker
+  block:
+    - name: Stop execution if desired version is older than current installed version
+      fail:
+        msg:
+          - "**********************"
+          - "*** Error detected ***"
+          - "**********************"
+          - "Already a newer version is installed. Installation cannot proceed. Please check if correct docker version is defined in playbook."
+      when:
+        - "'docker-ce' in ansible_facts.packages"
+        - "ansible_facts.packages['docker-ce'][0]['version'] is version(docker_ce_version, 'gt')"
+    - name: Removing version lock on docker packages to install newer version
+      command: apt-mark unhold docker-ce docker-ce-cli containerd.io
+      changed_when: false
+      when:
+        - "'docker-ce' in ansible_facts.packages"
+        - "ansible_facts.packages['docker-ce'][0]['version'] is version(docker_ce_version, 'lt')"
+    - name: Installing docker
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - "docker-ce={{ docker_ce_version }}"
+        - "docker-ce-cli={{ docker_ce_cli_version }}"
+        - "containerd.io"
+      notify: Restart docker.service
+    - name: Adding version lock on docker and its dependencies
+      command: apt-mark hold docker-ce docker-ce-cli containerd.io
+      changed_when: false
+
+- name: Setup br-netfilter and overlay kernel modules
+  template:
+    backup: no
+    dest: /etc/modules-load.d/containerd.conf
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/kernel-modules/containerd.conf.j2"
+
+- name: Load BrNetfilter and overlay kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ docker_kernel_modules }}"
+
+- name: Sysctl - enable iptables to see bridged traffic
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ docker_sysctl_iptables_bridged_traffic }}"
+
+- name: Sysctl - enable ip forwarding and broadcasting
+  sysctl:
+    name: "{{ item.key }}"
+    reload: yes
+    state: present
+    value: "{{ item.value }}"
+  with_items: "{{ docker_sysctl_ipforwarding_broadcasting }}"
+
+- name: Patching docker systemd service file
+  template:
+    src: "{{ role_path }}/templates/systemctl/override.conf"
+    dest: /etc/systemd/system/docker.service.d/
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Restart docker.service
+
+- name: Configuring docker service
+  copy:
+    src: "{{ role_path }}/templates/docker/daemon.json"
+    dest: /etc/docker/
+    group: "{{ docker_system_group }}"
+    owner: "{{ docker_system_user }}"
+    mode: 0644
+    backup: yes
+  notify: Restart docker.service
+
+- name: Ensuring docker.service is enabled and started
+  systemd:
+    name: docker
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+- name: Execute handlers
+  meta: flush_handlers

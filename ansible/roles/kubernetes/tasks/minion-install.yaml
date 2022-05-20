@@ -1,0 +1,243 @@
+
+# Firewall (UFW)
+- name: Setup firewall
+  block:
+  - name: Allow access to kubelet
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '10250'
+      proto: tcp
+      log: no
+      comment: "Kubernetes kubelet"
+  - name: Allow access to kube-proxy
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: 30000:32767
+      proto: udp
+      log: no
+      comment: "Kubernetes kube-proxy"
+  - name: Allow access to weave/tcp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '6783'
+      proto: tcp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/udp
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: 6783:6784
+      proto: udp
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to weave/sdn
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: weave
+      log: no
+      comment: "Weave SDN"
+  - name: Allow access to node-exporter
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '9100'
+      proto: tcp
+      log: no
+      comment: "Monitoring node-exporter"
+  - name: Allow access to kube-state-metrics
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      port: '8080'
+      proto: tcp
+      log: no
+      comment: "Monitoring kube-state-metrics"
+  - name: Allow access to multicast traffic
+    community.general.ufw:
+      rule: allow
+      direction: in
+      interface: "{{ network_interface }}"
+      to_ip: 224.0.0.0/4
+      proto: igmp
+      log: no
+      comment: "Multicast"
+  tags:
+    - feature/firewall
+
+# Unhold kubernetes packages if required
+- name: Unhold kubernetes packages
+  command: apt-mark unhold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubectl
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
+  changed_when: false
+  when: 'item|string in ansible_facts.packages'
+
+# Install kubernetes common packages and add version lock
+- name: Install kubernetes packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - "kubeadm={{ kubernetes_version }}"
+      - "kubelet={{ kubernetes_version }}"
+      - "kubernetes-cni"
+  notify: Restart kubelet.service
+
+ # Gather package facts
+- name: Gather Package facts
+  package_facts:
+    manager: apt
+
+- name: Hold kubernetes packages
+  command: apt-mark hold "{{ item }}"
+  with_items:
+    - kubeadm
+    - kubelet
+    - kubernetes-cni
+    - conntrack
+    - cri-tools
+    - socat
+  changed_when: false
+  when: 'item|string in ansible_facts.packages'
+
+# Start kubelet
+- name: Ensure kubelet.service is enabled and started
+  systemd:
+    name: kubelet
+    daemon-reload: yes
+    enabled: yes
+    masked: no
+    state: started
+    no_block: no
+
+# Get kubeadm token from master node
+- name: Generate kubeadm join command
+  shell: "kubeadm token create --print-join-command 2>/dev/null"
+  register: kubeadmJoinCommand
+  delegate_to: "{{ groups['master'][0] }}"
+  changed_when: false
+
+# Preflight checks
+- name: Running preflight checks
+  command: "{{ kubeadmJoinCommand.stdout | regex_replace('join', 'join phase preflight') }}"
+  register: preflightChecks
+  ignore_errors: true
+  no_log: true
+
+- name: Validating if node was previously initialized
+  debug:
+    msg:
+      - "************"
+      - "*** INFO ***"
+      - "************"
+      - "It seems this machine has been already initialized, won't be re-initialized in current state. If there is a requirement to re-initialize it as fresh then first reset it with :"
+      - "kubeadm reset -f"
+  when: preflightChecks.stderr.find('ERROR FileAvailable') != -1 or preflightChecks.stderr.find('ERROR Port') != -1
+
+- name: Setup kubernetes minion
+  command: "{{ kubeadmJoinCommand.stdout }}"
+  register: kubeadmJoinResult
+  ignore_errors: true
+  when: preflightChecks is succeeded
+
+- name: Write kubeadm join logs
+  block:
+    - name: Write kubeadm join stdout result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-join.log"
+        content: "{{ kubeadmJoinResult.stdout_lines | join('\n') }}"
+      when: kubeadmJoinResult.stdout_lines is defined
+    - name: Write kubeadm join stderr result into logs
+      copy:
+        dest: "{{ kubernetes_log_dir_path }}/kubeadm-join-error.log"
+        content: "{{ kubeadmJoinResult.stderr_lines | join('\n') }}"
+      when: kubeadmJoinResult.stderr_lines is defined
+
+- name: Stop if minion setup failed
+  fail:
+    msg:
+      - "**********************"
+      - "*** Error detected ***"
+      - "**********************"
+      - "Kubernetes minion setup has failed, please check log files available in {{ kubernetes_log_dir_path }} for more information."
+  when: kubeadmJoinResult is failed
+
+- name: Add AGENT label to node
+  command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/agent= --overwrite=true"
+  changed_when: false
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to STORAGE services nodes
+  block:
+  - name: Set node role to STORAGE
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/storage= --overwrite=true"
+    changed_when: false
+  - name: Set STORAGE label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=storage --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-STORAGE-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=storage:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['storage'] and kubernetes_taint_storage_nodes is true
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to SHARED services nodes
+  block:
+  - name: Set node role to SHARED
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/aux= --overwrite=true"
+    changed_when: false
+  - name: Set SHARED label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=kafka --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-SHARED-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=shared:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['shared']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to DXP services nodes
+  block:
+  - name: Set node role to DXP
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/dxp= --overwrite=true"
+    changed_when: false
+  - name: Set DXP label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=dxp --overwrite=true"
+    changed_when: false
+  - name: Add DEDICATED-DXP-NOSCHEDULE taint on node
+    command: "kubectl taint node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=dxp:NoSchedule --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['dxp']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Add label and taints to VALPOOL services nodes
+  block:
+  - name: Set node role to VALPOOL
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} node-role.kubernetes.io/valpool= --overwrite=true"
+    changed_when: false
+  - name: Set VALPOOL label on node
+    command: "kubectl label node {{ hostvars[inventory_hostname].ansible_nodename }} valamis.com/dedicated=valpool --overwrite=true"
+    changed_when: false
+  when: inventory_hostname in groups['valpool']
+  delegate_to: "{{ groups['master'][0] }}"
+
+- name: Execute handlers
+  meta: flush_handlers

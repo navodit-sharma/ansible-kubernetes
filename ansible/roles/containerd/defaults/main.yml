@@ -1,0 +1,27 @@
+containerd_system_user: "root"
+containerd_system_group: "root"
+
+containerd_version: 1.5.11-1
+containerd_storage_device: "/dev/xvdb"
+containerd_data_dir: "/var/lib/containerd"
+containerd_config_dir: "/etc/containerd"
+containerd_config_file: "{{ containerd_config_dir }}/config.toml"
+containerd_deb_url: "https://download.docker.com/linux/ubuntu"
+containerd_deb_distro: "{{ hostvars[inventory_hostname][ansible_distribution_release] }}"
+containerd_sysctl_ipforwarding_broadcasting:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: net.ipv4.conf.all.rp_filter
+    value: 0
+  - key: net.ipv4.icmp_echo_ignore_broadcasts
+    value: 0
+containerd_sysctl_iptables_bridged_traffic:
+  - key: net.bridge.bridge-nf-call-iptables
+    value: 1
+  - key: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+containerd_kernel_modules:
+  - br_netfilter
+  - overlay
+containerd_nerdctl_version: 0.18.0
+containerd_nerdctl_binary_url: "https://github.com/containerd/nerdctl/releases/download/v{{ containerd_nerdctl_version }}/nerdctl-{{ containerd_nerdctl_version }}-linux-amd64.tar.gz"

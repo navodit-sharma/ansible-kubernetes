@@ -1,0 +1,13 @@
+---
+
+- name: Kubernetes minion upgrade
+  hosts: minion
+  serial: 3
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - k8s-upgrade
+    - k8s-minion-upgrade
+  roles:
+    - { role: ../roles/kubernetes, node_type: minion, task_type: upgrade }

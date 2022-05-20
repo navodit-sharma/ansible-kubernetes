@@ -1,0 +1,12 @@
+---
+
+- name: Install containerd
+  hosts: master,minion
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - containerd
+    - container-runtime
+  roles:
+    - ../roles/containerd

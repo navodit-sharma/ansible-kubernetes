@@ -1,0 +1,56 @@
+---
+network_interface: eth0
+kubernetes_version: 1.14.2-00
+kubernetes_container_runtime: "containerd"
+kubernetes_cri_socket_path_containerd: "/run/containerd/containerd.sock"
+kubernetes_cri_socket_path_docker: "/var/run/dockershim.sock"
+kubernetes_pod_netowrk_url: https://cloud.weave.works/k8s/net?k8s-version=
+kubernetes_master_bind_port: 6443
+kubernetes_setup_status_file: /etc/kubernetes/k8s-setup.status
+kubernetes_kubeadm_token_ttl: 24h0m0s
+kubernetes_system_user: root
+kubernetes_system_group: root
+kubernetes_apt_key_url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+kubernetes_deb_url: https://apt.kubernetes.io/
+kubernetes_deb_distro: kubernetes-xenial
+kubernetes_kernel_modules:
+  - ip_vs
+  - ip_vs_rr
+  - ip_vs_wrr
+  - ip_vs_sh
+  - nf_conntrack
+kubernetes_cluster_name: cluster
+kubernetes_log_dir_path: /var/log/kubernetes
+kubernetes_dns_name: "{{ kubernetes_cluster_name }}.local"
+kubernetes_service_subnet: "10.96.0.0/12"
+kubernetes_pod_subnet: "10.32.0.0/12"
+kubernetes_allow_privileged: "true"
+kubernetes_apiserver_anonymous_auth_enabled: "true"
+kubernetes_kubelet_anonymous_auth_enabled: "false"
+kubernetes_authorization_mode: "Node,RBAC"
+kubernetes_events_ttl: "24h0m0s"
+kubernetes_cgroup_driver: "systemd"
+kubernetes_imagepull_progress_deadline: "60m0s"
+kubernetes_serialize_image_pulls: "false"
+kubernetes_tls_cipher_suits: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+kubernetes_tls_min_version: "VersionTLS12"
+kubernetes_resolvconf_path: "/run/systemd/resolve/resolv.conf"
+kubernetes_kubelet_rotate_certs: true
+kubernetes_hard_eviction_memory_available: "100Mi"
+kubernetes_hard_eviction_nodefs_available: "10%"
+kubernetes_hard_eviction_nodefs_inodesfree: "5%"
+kubernetes_hard_eviction_imagefs_available: "15%"
+kubernetes_enforce_node_allocatable: [pods]
+kubernetes_server_tls_bootstrap: true
+kubernetes_kubeproxy_mode: "ipvs"
+kubernetes_kubeproxy_ipvs_scheduler: ""
+kubernetes_taint_storage_nodes: true
+kubernetes_kca_enabled: true
+kubernetes_kca_namespace: "kube-system"
+kubernetes_kca_repo_url: 'https://github.com/postfinance/kubelet-csr-approver.git'
+kubernetes_kca_repo_tag: "v0.2.2"
+kubernetes_kca_repo_checkout_directory: "/tmp/kubelet-csr-approver"
+kubernetes_kca_provider_regex: "^[a-z0-9]*\\.valamis\\.local$"
+kubernetes_kca_provider_ip_prefixes: "0.0.0.0/0"
+kubernetes_kca_max_expiration_seconds: "31622400"
+kubernetes_kca_bypass_dns_resolution: "false"

@@ -1,0 +1,4 @@
+---
+
+- import_playbook: playbooks/kubernetes-master-upgrade.yaml
+- import_playbook: playbooks/kubernetes-minion-upgrade.yaml

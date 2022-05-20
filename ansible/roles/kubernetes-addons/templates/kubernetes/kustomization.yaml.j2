@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: {{ addon_vsc_snapshot_validation_webhook_namespace }}
+resources:
+- admission-configuration-template
+- webhook.yaml
+- snapshot-validation-webhook-cert.yaml
+patches:
+  - patch: |-
+      apiVersion: admissionregistration.k8s.io/v1
+      kind: ValidatingWebhookConfiguration
+      metadata:
+        name: "validation-webhook.snapshot.storage.k8s.io"
+        annotations:
+          cert-manager.io/inject-ca-from: "{{ addon_vsc_snapshot_validation_webhook_certificate_namespace }}/{{ addon_vsc_snapshot_validation_webhook_certificate_name }}"
+      webhooks:
+      - name: validation-webhook.snapshot.storage.k8s.io
+        clientConfig:
+          caBundle: c2FtcGxlCg==
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: snapshot-validation-deployment
+      spec:
+        template:
+          spec:
+            containers:
+            - name: snapshot-validation
+              args:
+              - --tls-cert-file=/etc/snapshot-validation-webhook/certs/tls.crt
+              - --tls-private-key-file=/etc/snapshot-validation-webhook/certs/tls.key
+            volumes:
+              - name: snapshot-validation-webhook-certs
+                secret:
+                  secretName: {{ addon_vsc_snapshot_validation_webhook_certificate_secret_name }}

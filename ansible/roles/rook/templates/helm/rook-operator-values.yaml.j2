@@ -1,0 +1,78 @@
+# {{ ansible_managed }}
+#
+# Reference : https://raw.githubusercontent.com/rook/rook/v{{ rook_ceph_version }}/deploy/charts/rook-ceph/values.yaml
+---
+crds:
+  enabled: {{ rook_operator_crds_enabled }}
+resources:
+  {{ rook_operator_resources | to_nice_yaml(indent=2) | indent(2) | trim }}
+nodeSelector:
+  {{ rook_operator_node_selectors | to_nice_yaml(indent=2) | indent(2) | trim }}
+tolerations:
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(2) | trim }}
+logLevel: {{ rook_operator_log_level }}
+rbacEnable: {{ rook_operator_rbac_enable }}
+pspEnable: {{ rook_operator_psp_enable }}
+priorityClassName: {{ rook_operator_priority_class }}
+csi:
+  enableRbdDriver: {{ rook_operator_csi_enable_rbd_driver }}
+  enableCephfsDriver: {{ rook_operator_csi_enable_cephfs_driver }}
+  enableGrpcMetrics: {{ rook_operator_csi_enable_grpc_metrics }}
+  enableCSIHostNetwork: {{ rook_operator_csi_enable_host_network }}
+  enableCephfsSnapshotter: {{ rook_operator_csi_enable_cephfs_snapshotter }}
+  enableRBDSnapshotter: {{ rook_operator_csi_enable_rbd_snapshotter }}
+  enableCSIEncryption: {{ rook_operator_csi_enable_encryption }}
+  pluginPriorityClassName: {{ rook_operator_csi_plugin_priority_class }}
+  provisionerPriorityClassName: {{ rook_operator_csi_provisioner_priority_class }}
+  rbdFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  cephFSFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  nfsFSGroupPolicy: "{{ rook_operator_csi_filesystem_group_policy }}"
+  provisionerReplicas: {{ rook_operator_csi_provisioner_replicas }}
+  logLevel: {{ rook_operator_csi_containers_loglevel }}
+  rbdPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  cephFSPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  nfsPluginUpdateStrategy: {{ rook_operator_csi_update_strategy }}
+  grpcTimeoutInSeconds: {{ rook_operator_csi_grpc_timeout_seconds }}
+  allowUnsupportedVersion: {{ rook_operator_csi_allow_unsupported_version }}
+  csiRBDProvisionerResource: |
+    {{ rook_operator_csi_rbd_provisioner_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  csiRBDPluginResource: |
+    {{ rook_operator_csi_rbd_plugin_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  csiCephFSProvisionerResource: |
+    {{ rook_operator_csi_cephfs_provisioner_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  csiCephFSPluginResource: |
+    {{ rook_operator_csi_cephfs_plugin_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  csiNFSProvisionerResource: |
+    {{ rook_operator_csi_nfs_provisioner_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  csiNFSPluginResource: |
+    {{ rook_operator_csi_nfs_plugin_resource | to_nice_yaml(indent=2) | indent(4) | trim }}
+  provisionerTolerations:
+    {{ rook_operator_provisioner_tolerations | trim }}
+  provisionerNodeAffinity: {{ rook_operator_provisioner_node_affinity }}
+  pluginTolerations:
+    {{ rook_operator_plugin_tolerations | to_nice_yaml(indent=2) | indent(4) | trim }}
+  forceCephFSKernelClient: {{ rook_operator_force_cephfs_kernel_client }}
+  kubeletDirPath: {{ rook_operator_kubelet_dir_path }}
+  volumeReplication:
+    enabled: {{ rook_operator_volume_replication_enabled }}
+  csiAddons:
+    enabled: {{ rook_operator_csi_addons_enabled }}
+  nfs:
+    enabled: {{ rook_operator_nfs_enabled }}
+enableDiscoveryDaemon: {{ rook_operator_discovery_daemon_enabled }}
+cephCommandsTimeoutSeconds: "{{ rook_operator_ceph_commands_timeout_seconds }}"
+useOperatorHostNetwork: {{ rook_operator_use_host_network }}
+discover:
+  tolerations:
+    {{ rook_operator_discover_tolerations | trim }}
+  nodeAffinity: {{ rook_operator_discover_node_affinity }}
+
+hostpathRequiresPrivileged: {{ rook_operator_hostpath_requires_privileged }}
+disableDeviceHotplug: {{ rook_operator_disable_device_hotplug }}
+disableAdmissionController: {{ rook_operator_disable_admissioncontroller }}
+admissionController:
+  tolerations:
+    {{ rook_operator_admissioncontroller_tolerations | trim }}
+  nodeAffinity: {{ rook_operator_admissioncontroller_node_affinity }}
+monitoring:
+  enabled: {{ rook_operator_monitoring_enabled }}

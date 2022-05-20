@@ -1,0 +1,12 @@
+---
+- hosts: database
+  remote_user: root
+  become: true
+  tags:
+    - db
+    - database
+  roles:
+    - role: ../roles/postgresql
+      db_name: demo
+      db_user: demo
+      db_password: demo

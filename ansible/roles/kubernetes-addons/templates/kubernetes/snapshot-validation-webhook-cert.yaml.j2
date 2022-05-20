@@ -1,0 +1,26 @@
+---
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ addon_vsc_snapshot_validation_webhook_issuer_name }}
+  namespace: {{ addon_vsc_snapshot_validation_webhook_issuer_namespace }}
+spec:
+  selfSigned: {}
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ addon_vsc_snapshot_validation_webhook_certificate_name }}
+  namespace: {{ addon_vsc_snapshot_validation_webhook_certificate_namespace }}
+spec:
+  secretName: {{ addon_vsc_snapshot_validation_webhook_certificate_secret_name }}
+  subject:
+    organizations:
+    - {{ addon_vsc_snapshot_validation_webhook_name }}
+  dnsNames:
+  {{ addon_vsc_snapshot_validation_webhook_dns_names | to_nice_yaml(indent=2) | indent(2) | trim }}
+  issuerRef:
+    name: {{ addon_vsc_snapshot_validation_webhook_issuer_name }}

@@ -1,4 +1,0 @@
----
-
-- name: "Beginning setup of Kubernetes {{ node_type }}"
-  include_tasks: "{{ role_path }}/tasks/{{ node_type }}-{{ task_type }}.yml"

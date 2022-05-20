@@ -1,0 +1,90 @@
+# {{ ansible_managed }}
+
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+bootstrapTokens:
+- token: "{{ kubernetes_kubeadm_token }}"
+  ttl: "{{ kubernetes_kubeadm_token_ttl }}"
+  usages:
+  - signing
+  - authentication
+  groups:
+  - system:bootstrappers:kubeadm:default-node-token
+localAPIEndpoint:
+  advertiseAddress: "{{ hostvars[inventory_hostname]['ansible_' + network_interface].ipv4.address }}"
+  bindPort: 6443
+nodeRegistration:
+  name: "{{ hostvars[inventory_hostname].ansible_nodename }}"
+{% if kubernetes_container_runtime == "docker" %}
+  criSocket: "{{ kubernetes_cri_socket_path_docker }}"
+{% else %}
+  criSocket: "{{ kubernetes_cri_socket_path_containerd }}"
+{% endif %}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: "v{{ kubernetes_version | regex_replace('-\d+$', '') }}"
+clusterName: "{{ kubernetes_cluster_name }}"
+imageRepository: "k8s.gcr.io"
+certificatesDir: "/etc/kubernetes/pki"
+controlPlaneEndpoint: ""
+useHyperKubeImage: false
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: "/var/lib/etcd"
+    extraArgs:
+      cipher-suites: "{{ kubernetes_tls_cipher_suits }}"
+networking:
+  dnsDomain: "{{ kubernetes_dns_name }}"
+  podSubnet: "{{ kubernetes_pod_subnet }}"
+  serviceSubnet: "{{ kubernetes_service_subnet }}"
+apiServer:
+  timeoutForControlPlane: 4m0s
+  extraArgs:
+    allow-privileged: "{{ kubernetes_allow_privileged }}"
+    anonymous-auth: "{{ kubernetes_apiserver_anonymous_auth_enabled }}"
+    authorization-mode: "{{ kubernetes_authorization_mode }}"
+    event-ttl: "{{ kubernetes_events_ttl }}"
+    tls-cipher-suites: "{{ kubernetes_tls_cipher_suits }}"
+    tls-min-version: "{{ kubernetes_tls_min_version }}"
+    v: "2"
+controllerManager:
+  extraArgs:
+    tls-cipher-suites: "{{ kubernetes_tls_cipher_suits }}"
+    tls-min-version: "{{ kubernetes_tls_min_version }}"
+    v: "2"
+scheduler:
+  extraArgs:
+    tls-cipher-suites: "{{ kubernetes_tls_cipher_suits }}"
+    tls-min-version: "{{ kubernetes_tls_min_version }}"
+    v: "2"
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+authentication:
+    anonymous:
+        enabled: {{ kubernetes_kubelet_anonymous_auth_enabled }}
+cgroupDriver: "{{ kubernetes_cgroup_driver }}"
+serializeImagePulls: {{ kubernetes_serialize_image_pulls }}
+tlsCipherSuites: [{{ kubernetes_tls_cipher_suits }}]
+tlsMinVersion: "{{ kubernetes_tls_min_version }}"
+resolvConf: "{{ kubernetes_resolvconf_path }}"
+rotateCertificates: {{ kubernetes_kubelet_rotate_certs }}
+evictionHard:
+    memory.available: "{{ kubernetes_hard_eviction_memory_available }}"
+    nodefs.available: "{{ kubernetes_hard_eviction_nodefs_available }}"
+    nodefs.inodesFree: "{{ kubernetes_hard_eviction_nodefs_inodesfree }}"
+    imagefs.available: "{{ kubernetes_hard_eviction_imagefs_available }}"
+enforceNodeAllocatable: {{ kubernetes_enforce_node_allocatable }}
+serverTLSBootstrap: {{ kubernetes_server_tls_bootstrap }}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+mode: "{{ kubernetes_kubeproxy_mode }}"
+ipvs:
+  scheduler: ""{{ kubernetes_kubeproxy_ipvs_scheduler }}

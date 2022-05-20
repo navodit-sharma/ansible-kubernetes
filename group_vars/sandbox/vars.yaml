@@ -1,9 +1,0 @@
----
-
-network_interface: eth1
-
-kubernetes_version: 1.14.2-00
-kubernetes_cni_version: 0.7.5-00
-
-kubernetes_cluster_name: valpaas
-kubernetes_dns_name: "{{ kubernetes_cluster_name }}.local"

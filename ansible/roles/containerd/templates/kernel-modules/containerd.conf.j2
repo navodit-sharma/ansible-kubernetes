@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+
+{% for item in containerd_kernel_modules %}
+{{ item }}
+{% endfor %}

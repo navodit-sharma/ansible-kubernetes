@@ -1,0 +1,7 @@
+---
+- import_playbook: playbooks/os-setup.yaml
+- import_playbook: playbooks/containerd.yaml
+- import_playbook: playbooks/kubernetes-master-install.yaml
+- import_playbook: playbooks/kubernetes-minion-install.yaml
+- import_playbook: playbooks/kubernetes-addons.yaml
+- import_playbook: playbooks/rook.yaml

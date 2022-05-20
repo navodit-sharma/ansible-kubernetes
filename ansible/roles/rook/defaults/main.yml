@@ -1,0 +1,544 @@
+---
+
+# Common
+rook_ceph_version: 1.9.1
+rook_ceph_namespace: "rook-ceph"
+rook_system_group: root
+rook_system_user: root
+
+rook_operator_repo_name: rook-release
+rook_operator_repo_url: "https://charts.rook.io/release"
+rook_operator_chart_ref: "{{ rook_operator_repo_name }}/rook-ceph"
+rook_operator_chart_version: "{{ rook_ceph_version }}"
+rook_operator_release_name: "rook-ceph"
+rook_operator_release_namespace: "rook-ceph"
+
+rook_cephcluster_repo_name: rook-release
+rook_cephcluster_repo_url: "https://charts.rook.io/release"
+rook_cephcluster_chart_ref: "{{ rook_operator_repo_name }}/rook-ceph-cluster"
+rook_cephcluster_chart_version: "{{ rook_ceph_version }}"
+rook_cephcluster_release_name: "rook-ceph-cluster"
+rook_cephcluster_release_namespace: "rook-ceph"
+
+# Operator helm values
+rook_operator_crds_enabled: "true"
+rook_operator_resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+rook_operator_node_selectors:
+  valamis.com/dedicated: storage
+rook_operator_node_affinity: "valamis.com/dedicated=storage"
+rook_operator_tolerations:
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "storage"
+    effect: "NoSchedule"
+rook_operator_log_level: "INFO"
+rook_operator_rbac_enable: "true"
+rook_operator_psp_enable: "true"
+rook_operator_priority_class: "system-cluster-critical"
+rook_operator_csi_enable_rbd_driver: "true"
+rook_operator_csi_enable_cephfs_driver: "true"
+rook_operator_csi_enable_grpc_metrics: "false"
+rook_operator_csi_enable_host_network: "false"
+rook_operator_csi_enable_cephfs_snapshotter: "true"
+rook_operator_csi_enable_rbd_snapshotter: "true"
+rook_operator_csi_enable_encryption: "false"
+rook_operator_csi_plugin_priority_class: "system-node-critical"
+rook_operator_csi_provisioner_priority_class: "system-cluster-critical"
+rook_operator_csi_filesystem_group_policy: "ReadWriteOnceWithFSType"
+rook_operator_csi_provisioner_replicas: 2
+rook_operator_csi_containers_loglevel: 0
+rook_operator_csi_update_strategy: "RollingUpdate"
+rook_operator_csi_grpc_timeout_seconds: 150
+rook_operator_csi_allow_unsupported_version: "false"
+rook_operator_csi_rbd_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-resizer
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-attacher
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-snapshotter
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-rbdplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : csi-omap-generator
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_rbd_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-rbdplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_cephfs_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-resizer
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-attacher
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-snapshotter
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-cephfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_cephfs_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-cephfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  - name : liveness-prometheus
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+rook_operator_csi_nfs_provisioner_resource:
+  - name : csi-provisioner
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+  - name : csi-nfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+rook_operator_csi_nfs_plugin_resource:
+  - name : driver-registrar
+    resource:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 100m
+  - name : csi-nfsplugin
+    resource:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+rook_operator_provisioner_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_provisioner_node_affinity: "{{ rook_operator_node_affinity  }}"
+rook_operator_plugin_tolerations:
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "storage"
+    effect: "NoSchedule"
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "shared"
+    effect: "NoSchedule"
+  - key: "valamis.com/dedicated"
+    operator: "Equal"
+    value: "dxp"
+    effect: "NoSchedule"
+rook_operator_force_cephfs_kernel_client: "true"
+rook_operator_kubelet_dir_path: "/var/lib/kubelet"
+rook_operator_volume_replication_enabled: "false"
+rook_operator_csi_addons_enabled: "false"
+rook_operator_nfs_enabled: "false"
+rook_operator_discovery_daemon_enabled: "false"
+rook_operator_use_host_network: "false"
+rook_operator_ceph_commands_timeout_seconds: "15"
+rook_operator_discover_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_discover_node_affinity: "{{ rook_operator_node_affinity  }}"
+rook_operator_hostpath_requires_privileged: "false"
+rook_operator_disable_device_hotplug: "false"
+rook_operator_disable_admissioncontroller: "false"
+rook_operator_admissioncontroller_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(4) }}
+rook_operator_admissioncontroller_node_affinity: "{{ rook_operator_node_affinity  }}"
+rook_operator_monitoring_enabled: "true"
+
+
+# Ceph cluster helm values
+rook_ceph_cluster_namespace: "rook-ceph"
+rook_ceph_toolbox_enabled: "true"
+rook_ceph_toolbox_tolerations: |
+  {{ rook_operator_tolerations | to_nice_yaml(indent=2) | indent(2) }}
+rook_ceph_toolbox_resources:
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+rook_ceph_toolbox_priorityclass: "system-cluster-critical"
+rook_ceph_monitoring_enabled: "false"
+rook_ceph_monitoring_create_prometheus_rules: "false"
+rook_ceph_psp_enable: "true"
+rook_ceph_cluster_allow_unsupported_version: "false"
+rook_ceph_cluster_data_dir_host_path: "/var/lib/rook"
+rook_ceph_cluster_skip_upgrade_checks: "false"
+rook_ceph_cluster_continue_upgrade_after_checks_even_if_not_healthy: "false"
+rook_ceph_cluster_wait_timeout_for_healthy_osd_minutes: 10
+rook_ceph_cluster_mon:
+  count: 3
+  allowMultiplePerNode: false
+rook_ceph_cluster_mgr:
+  count: 2
+  allowMultiplePerNode: false
+  modules:
+    - name: pg_autoscaler
+      enabled: true
+rook_ceph_cluster_dashboard:
+  enabled: true
+  port: 8443
+  ssl: true
+rook_ceph_cluster_crashcollector:
+  disable: true   # check
+  daysToRetain: 365
+rook_ceph_cluster_logcollector:
+  enabled: true   # check
+  periodicity: 24h
+rook_ceph_cluster_cleanup_policy:
+  confirmation: ""
+  sanitizeDisks:
+    method: quick
+    dataSource: zero
+    iteration: 1
+  allowUninstallWithVolumes: false
+rook_ceph_cluster_placement:
+  all:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: valamis.com/dedicated
+              operator: In
+              values:
+              - storage
+    topologySpreadConstraints:
+    tolerations: |
+      {{ rook_operator_tolerations }}
+rook_ceph_cluster_labels:
+rook_ceph_cluster_resources:
+  mgr:
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  mon:
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+    requests:
+      cpu: "1000m"
+      memory: "1Gi"
+  osd:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "1000m"
+      memory: "4Gi"
+  prepareosd:
+    limits:
+      cpu: "500m"
+      memory: "200Mi"
+    requests:
+      cpu: "500m"
+      memory: "50Mi"
+  mgr-sidecar:
+    limits:
+      cpu: "500m"
+      memory: "100Mi"
+    requests:
+      cpu: "100m"
+      memory: "40Mi"
+  crashcollector:
+    limits:
+      cpu: "500m"
+      memory: "60Mi"
+    requests:
+      cpu: "100m"
+      memory: "60Mi"
+  logcollector:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "100m"
+      memory: "100Mi"
+  cleanup:
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "100Mi"
+rook_ceph_cluster_remove_osd_if_out_and_safe_to_remove: "false"
+rook_ceph_cluster_priority_class_mon: "system-node-critical"
+rook_ceph_cluster_priority_class_osd: "system-node-critical"
+rook_ceph_cluster_priority_class_mgr: "system-cluster-critical"
+rook_ceph_cluster_storage_nodes_and_disks:
+  - name: "172.17.4.201"
+    devices:
+      - name: "sdb"
+      - name: "nvme01"
+        config:
+          osdsPerDevice: "5"
+      - name: "/dev/disk/by-id/ata-ST4000DM004-XXXX"
+    config:
+  - name: "172.17.4.301"
+    deviceFilter: "^sd."
+rook_ceph_cluster_storage:
+  useAllNodes: false
+  useAllDevices: false
+  deviceFilter:
+  config:
+    metadataDevice:
+    osdsPerDevice: "1"
+    encryptedDevice: "false"
+  nodes: |
+    {{ rook_ceph_cluster_storage_nodes_and_disks }}
+rook_ceph_cluster_disruption_management:
+  managePodBudgets: true
+  osdMaintenanceTimeout: 30
+  pgHealthCheckTimeout: 0
+rook_ceph_cluster_healthcheck:
+  daemonHealth:
+    mon:
+      disabled: false
+      interval: 45s
+    osd:
+      disabled: false
+      interval: 60s
+    status:
+      disabled: false
+      interval: 60s
+  livenessProbe:
+    mon:
+      disabled: false
+    mgr:
+      disabled: false
+    osd:
+      disabled: false
+rook_ceph_blockpool_name: ceph-blockpool
+rook_ceph_blockpool_failuredomain: host
+rook_ceph_blockpool_replicated_size: 3
+rook_ceph_blockpool_storageclass_enabled: "true"
+rook_ceph_blockpool_storageclass_name: rook-ceph-block
+rook_ceph_blockpool_storageclass_is_default: "true"
+rook_ceph_blockpool_storageclass_reclaim_policy: Delete
+rook_ceph_blockpool_storageclass_allow_volume_expansion: "true"
+rook_ceph_blockpool_storageclass_parameters:
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+rook_ceph_filesystem_name: ceph-filesystem
+rook_ceph_filesystem_metadatapool_failuredomain: host
+rook_ceph_filesystem_metadatapool_replicated_size: 3
+rook_ceph_filesystem_datapool_failuredomain: host
+rook_ceph_filesystem_datapool_replicated_size: 3
+rook_ceph_filesystem_datapool_name: ceph-filesystem
+rook_ceph_filesystem_metadataserver:
+  activeCount: 1
+  activeStandby: true
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+    requests:
+      cpu: "1000m"
+      memory: "4Gi"
+  priorityClassName: system-cluster-critical
+rook_ceph_filesystem_storageclass_enabled: "true"
+rook_ceph_filesystem_storageclass_name: rook-ceph-filesystem
+rook_ceph_filesystem_storageclass_is_default: "false"
+rook_ceph_filesystem_storageclass_pool: "{{ rook_ceph_filesystem_datapool_name }}"
+rook_ceph_filesystem_storageclass_reclaim_policy: Delete
+rook_ceph_filesystem_storageclass_allow_volume_expansion: "true"
+rook_ceph_filesystem_storageclass_parameters:
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+rook_ceph_blockpool_snapshotclass_enabled: "true"
+rook_ceph_blockpool_snapshotclass_name: "rook-ceph-block"
+rook_ceph_blockpool_snapshotclass_is_default: "true"
+rook_ceph_blockpool_snapshotclass_deletion_policy: Delete
+rook_ceph_blockpool_snapshotclass_parameters:
+rook_ceph_filesystem_snapshotclass_enabled: "true"
+rook_ceph_filesystem_snapshotclass_name: "rook-ceph-filesystem"
+rook_ceph_filesystem_snapshotclass_is_default: "false"
+rook_ceph_filesystem_snapshotclass_deletion_policy: Delete
+rook_ceph_filesystem_snapshotclass_parameters:
+rook_ceph_objectstore_name: ceph-objectstore
+rook_ceph_objectstore_metadatapool_failuredomain: host
+rook_ceph_objectstore_metadatapool_replicated_size: 3
+rook_ceph_objectstore_datapool_failuredomain: host
+rook_ceph_objectstore_datapool_erasurecoded_data_chunks: 2
+rook_ceph_objectstore_datapool_erasurecoded_coding_chunks: 1
+rook_ceph_objectstore_preserve_pools_on_delete: "true"
+rook_ceph_objectstore_gateway:
+  port: 80
+  resources:
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+    requests:
+      cpu: "1000m"
+      memory: "1Gi"
+  # securePort: 443
+  # sslCertificateRef:
+  instances: 1
+  priorityClassName: system-cluster-critical
+  placement:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: valamis.com/dedicated
+              operator: In
+              values:
+              - storage
+    tolerations: |
+      {{ rook_operator_tolerations }}
+rook_ceph_objectstore_healthcheck_bucket_interval: 60s
+rook_ceph_objectstore_storageclass_enabled: "true"
+rook_ceph_objectstore_storageclass_name: "rook-ceph-object"
+rook_ceph_objectstore_storageclass_reclaim_policy: Delete
+rook_ceph_objectstore_storageclass_parameters:

@@ -1,0 +1,80 @@
+---
+
+# Rook - operator
+- name: Create required directories
+  file:
+    path: "/tmp/helm/rook-operator"
+    state: directory
+    group: "{{ rook_system_group }}"
+    owner: "{{ rook_system_user }}"
+    mode: 0755
+    recurse: yes
+  tags:
+    - rook/helm-config-only
+- name: Add values.yaml file for rook-operator
+  ansible.builtin.template:
+    backup: no
+    dest: /tmp/helm/rook-operator/values.yaml
+    group: "{{ rook_system_group }}"
+    owner: "{{ rook_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/helm/rook-operator-values.yaml.j2"
+  tags:
+    - rook/helm-config-only
+- name: Add rook-operator's helm repository
+  kubernetes.core.helm_repository:
+    binary_path: "/snap/bin/helm"
+    name: "{{ rook_operator_repo_name }}"
+    repo_url: "{{ rook_operator_repo_url }}"
+  tags:
+    - rook/helm-config-only
+- name: Deploy rook-operator
+  kubernetes.core.helm:
+    binary_path: "/snap/bin/helm"
+    release_name: "{{ rook_operator_release_name }}"
+    chart_ref: "{{ rook_operator_chart_ref }}"
+    chart_version: "{{ rook_operator_chart_version }}"
+    update_repo_cache: true
+    release_namespace: "{{ rook_operator_release_namespace }}"
+    create_namespace: true
+    history_max: 10
+    atomic: no
+    release_state: present
+    values_files:
+      - /tmp/helm/rook-operator/values.yaml
+
+# Rook - ceph cluster
+- name: Create required directories
+  file:
+    path: "/tmp/helm/rook-cephcluster"
+    state: directory
+    group: "{{ rook_system_group }}"
+    owner: "{{ rook_system_user }}"
+    mode: 0755
+    recurse: yes
+  tags:
+    - rook/helm-config-only
+- name: Add values.yaml file for rook-cephcluster
+  ansible.builtin.template:
+    backup: no
+    dest: /tmp/helm/rook-cephcluster/values.yaml
+    group: "{{ rook_system_group }}"
+    owner: "{{ rook_system_user }}"
+    mode: 0755
+    src: "{{role_path}}/templates/helm/rook-cephcluster-values.yaml.j2"
+  tags:
+    - rook/helm-config-only
+- name: Deploy rook-cephcluster
+  kubernetes.core.helm:
+    binary_path: "/snap/bin/helm"
+    release_name: "{{ rook_cephcluster_release_name }}"
+    chart_ref: "{{ rook_cephcluster_chart_ref }}"
+    chart_version: "{{ rook_cephcluster_chart_version }}"
+    update_repo_cache: true
+    release_namespace: "{{ rook_cephcluster_release_namespace }}"
+    create_namespace: true
+    history_max: 10
+    atomic: no
+    release_state: present
+    values_files:
+      - /tmp/helm/rook-cephcluster/values.yaml

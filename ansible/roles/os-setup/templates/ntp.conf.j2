@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+
+driftfile /var/lib/ntp/ntp.drift
+
+{% for line in os_ntp_server_list %}
+pool {{ line }} iburst
+{% endfor %}
+
+# fallback ubuntu ntp server
+pool ntp.ubuntu.com
+
+restrict -4 default kod notrap nomodify nopeer noquery limited
+restrict -6 default kod notrap nomodify nopeer noquery limited
+
+restrict 127.0.0.1
+restrict ::1
+
+restrict source notrap nomodify noquery

@@ -1,0 +1,26 @@
+---
+
+docker_system_group: root
+docker_system_user: root
+docker_storage: /dev/xvdb
+docker_service_port: 2375
+docker_ce_version: 5:19.03.11~3-0~ubuntu-bionic
+docker_ce_cli_version: 5:19.03.11~3-0~ubuntu-bionic
+docker_apt_key_url: https://download.docker.com/linux/ubuntu/gpg
+docker_deb_url: https://download.docker.com/linux/ubuntu
+docker_deb_distro: bionic
+docker_sysctl_ipforwarding_broadcasting:
+  - key: net.ipv4.ip_forward
+    value: 1
+  - key: net.ipv4.conf.all.rp_filter
+    value: 0
+  - key: net.ipv4.icmp_echo_ignore_broadcasts
+    value: 0
+docker_sysctl_iptables_bridged_traffic:
+  - key: net.bridge.bridge-nf-call-iptables
+    value: 1
+  - key: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+docker_kernel_modules:
+  - br_netfilter
+  - overlay

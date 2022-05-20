@@ -1,0 +1,25 @@
+service:
+  labels:
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: "metrics-server"
+
+metrics:
+  enabled: false
+
+hostNetwork:
+  enabled: false
+
+serviceMonitor:
+  enabled: {{ addon_metric_server_service_monitor_enabled }}
+  additionalLabels:
+    "app.kubernetes.io/name": metrics-server
+  interval: 30s
+  scrapeTimeout: 15s
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

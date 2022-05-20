@@ -1,0 +1,11 @@
+---
+
+- name: "Kubernetes common"
+  include_tasks: "{{ role_path }}/tasks/common.yaml"
+
+- name: "Kubernetes {{ node_type }} {{ task_type }}"
+  include_tasks: "{{ role_path }}/tasks/{{ node_type }}-{{ task_type }}.yaml"
+  tags:
+    - feature/weave-sdn
+    - feature/kubelet-csr-approver
+    - feature/firewall

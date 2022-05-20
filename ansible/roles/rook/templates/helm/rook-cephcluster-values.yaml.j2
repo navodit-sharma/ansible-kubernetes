@@ -1,0 +1,153 @@
+# {{ ansible_managed }}
+# jinja2: lstrip_blocks: "False", trim_blocks: "True"
+#
+# Reference : https://raw.githubusercontent.com/rook/rook/v{{ rook_ceph_version }}/deploy/charts/rook-ceph-cluster/values.yaml
+---
+operatorNamespace: {{ rook_ceph_namespace }}
+clusterName: {{ rook_ceph_cluster_namespace }}
+toolbox:
+  enabled: {{ rook_ceph_toolbox_enabled }}
+  tolerations:
+  {{ rook_ceph_toolbox_tolerations | trim }}
+  resources:
+    {{ rook_ceph_toolbox_resources | to_nice_yaml(indent=2) | indent(4) | trim }}
+  priorityClassName: {{ rook_ceph_toolbox_priorityclass }}
+monitoring:
+  enabled: {{ rook_ceph_monitoring_enabled }}
+  createPrometheusRules: {{ rook_ceph_monitoring_create_prometheus_rules }}
+pspEnable: {{ rook_ceph_psp_enable }}
+cephClusterSpec:
+  cephVersion:
+    allowUnsupported: {{ rook_ceph_cluster_allow_unsupported_version }}
+  dataDirHostPath: {{ rook_ceph_cluster_data_dir_host_path }}
+  skipUpgradeChecks: {{ rook_ceph_cluster_skip_upgrade_checks }}
+  continueUpgradeAfterChecksEvenIfNotHealthy: {{ rook_ceph_cluster_continue_upgrade_after_checks_even_if_not_healthy }}
+  waitTimeoutForHealthyOSDInMinutes: {{ rook_ceph_cluster_wait_timeout_for_healthy_osd_minutes }}
+  mon:
+    {{ rook_ceph_cluster_mon | to_nice_yaml(indent=2) | indent(4) | trim }}
+  mgr:
+    {{ rook_ceph_cluster_mgr | to_nice_yaml(indent=2) | indent(4) | trim }}
+  dashboard:
+    {{ rook_ceph_cluster_dashboard | to_nice_yaml(indent=2) | indent(4) | trim }}
+  crashCollector:
+    {{ rook_ceph_cluster_crashcollector | to_nice_yaml(indent=2) | indent(4) | trim }}
+  logCollector:
+    {{ rook_ceph_cluster_logcollector | to_nice_yaml(indent=2) | indent(4) | trim }}
+  cleanupPolicy:
+    {{ rook_ceph_cluster_cleanup_policy | to_nice_yaml(indent=2) | indent(4) | trim }}
+  placement:
+    {{ rook_ceph_cluster_placement | to_nice_yaml(indent=2) | indent(4) | trim }}
+{% if rook_ceph_cluster_labels is not none %}
+  labels:
+    {{ rook_ceph_cluster_labels | to_nice_yaml(indent=2) | indent(4) | trim }}
+{% else %}
+  labels:
+{% endif %}
+  resources:
+    {{ rook_ceph_cluster_resources | to_nice_yaml(2) | indent(4) | trim }}
+  removeOSDsIfOutAndSafeToRemove: {{ rook_ceph_cluster_remove_osd_if_out_and_safe_to_remove }}
+  priorityClassNames:
+    mon: {{ rook_ceph_cluster_priority_class_mon }}
+    osd: {{ rook_ceph_cluster_priority_class_osd }}
+    mgr: {{ rook_ceph_cluster_priority_class_mgr }}
+  storage:
+    {{ rook_ceph_cluster_storage | to_nice_yaml(indent=2) | indent(4) | trim }}
+  disruptionManagement:
+    {{ rook_ceph_cluster_disruption_management | to_nice_yaml(2) | indent(4) | trim }}
+  healthCheck:
+    {{ rook_ceph_cluster_healthcheck | to_nice_yaml(2) | indent(4) | trim }}
+cephBlockPools:
+  - name: {{ rook_ceph_blockpool_name }}
+    spec:
+      failureDomain: {{ rook_ceph_blockpool_failuredomain }}
+      replicated:
+        size: {{ rook_ceph_blockpool_replicated_size }}
+    storageClass:
+      enabled: {{ rook_ceph_blockpool_storageclass_enabled }}
+      name: {{ rook_ceph_blockpool_storageclass_name }}
+      isDefault: {{ rook_ceph_blockpool_storageclass_is_default }}
+      reclaimPolicy: {{ rook_ceph_blockpool_storageclass_reclaim_policy }}
+      allowVolumeExpansion: {{ rook_ceph_blockpool_storageclass_allow_volume_expansion }}
+{% if  rook_ceph_blockpool_storageclass_parameters is not none %}
+      parameters:
+        {{ rook_ceph_blockpool_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
+{% else %}
+      parameters:
+{% endif %}
+cephFileSystems:
+  - name: {{ rook_ceph_filesystem_name }}
+    spec:
+      metadataPool:
+        failureDomain: {{ rook_ceph_filesystem_metadatapool_failuredomain }}
+        replicated:
+          size: {{ rook_ceph_filesystem_metadatapool_replicated_size }}
+      dataPools:
+        - failureDomain: {{ rook_ceph_filesystem_datapool_failuredomain }}
+          replicated:
+            size: {{ rook_ceph_filesystem_datapool_replicated_size }}
+          name: {{ rook_ceph_filesystem_datapool_name }}
+      metadataServer:
+        {{ rook_ceph_filesystem_metadataserver | to_nice_yaml(2) | indent(8) | trim }}
+    storageClass:
+      enabled: {{ rook_ceph_filesystem_storageclass_enabled }}
+      name: {{ rook_ceph_filesystem_storageclass_name }}
+      isDefault: {{ rook_ceph_filesystem_storageclass_is_default }}
+      pool: {{ rook_ceph_filesystem_storageclass_pool }}
+      reclaimPolicy: {{ rook_ceph_filesystem_storageclass_reclaim_policy }}
+      allowVolumeExpansion: {{ rook_ceph_filesystem_storageclass_allow_volume_expansion }}
+{% if  rook_ceph_filesystem_storageclass_parameters is not none %}
+      parameters:
+        {{ rook_ceph_filesystem_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
+{% else %}
+      parameters:
+{% endif %}
+cephBlockPoolsVolumeSnapshotClass:
+  enabled: {{ rook_ceph_blockpool_snapshotclass_enabled }}
+  name: {{ rook_ceph_blockpool_snapshotclass_name }}
+  isDefault: {{ rook_ceph_blockpool_snapshotclass_is_default }}
+  deletionPolicy: {{ rook_ceph_blockpool_snapshotclass_deletion_policy }}
+{% if  rook_ceph_blockpool_snapshotclass_parameters is not none %}
+  parameters:
+    {{ rook_ceph_blockpool_snapshotclass_parameters | to_nice_yaml(2) | indent(4) | trim }}
+{% else %}
+  parameters:
+{% endif %}
+cephFileSystemVolumeSnapshotClass:
+  enabled: {{ rook_ceph_filesystem_snapshotclass_enabled }}
+  name: {{ rook_ceph_filesystem_snapshotclass_name }}
+  isDefault: {{ rook_ceph_filesystem_snapshotclass_is_default }}
+  deletionPolicy: {{ rook_ceph_filesystem_snapshotclass_deletion_policy }}
+{% if  rook_ceph_filesystem_snapshotclass_parameters is not none %}
+  parameters:
+    {{ rook_ceph_filesystem_snapshotclass_parameters | to_nice_yaml(2) | indent(4) | trim }}
+{% else %}
+  parameters:
+{% endif %}
+cephObjectStores:
+  - name: {{ rook_ceph_objectstore_name }}
+    spec:
+      metadataPool:
+        failureDomain: {{ rook_ceph_objectstore_metadatapool_failuredomain }}
+        replicated:
+          size: {{ rook_ceph_objectstore_metadatapool_replicated_size }}
+      dataPool:
+        failureDomain: {{ rook_ceph_objectstore_datapool_failuredomain }}
+        erasureCoded:
+          dataChunks: {{ rook_ceph_objectstore_datapool_erasurecoded_data_chunks }}
+          codingChunks: {{ rook_ceph_objectstore_datapool_erasurecoded_coding_chunks }}
+      preservePoolsOnDelete: {{ rook_ceph_objectstore_preserve_pools_on_delete }}
+      gateway:
+        {{ rook_ceph_objectstore_gateway | to_nice_yaml(2) | indent(8) | trim }}
+      healthCheck:
+        bucket:
+          interval: {{ rook_ceph_objectstore_healthcheck_bucket_interval }}
+    storageClass:
+      enabled: {{ rook_ceph_objectstore_storageclass_enabled }}
+      name: {{ rook_ceph_objectstore_storageclass_name }}
+      reclaimPolicy: {{ rook_ceph_objectstore_storageclass_reclaim_policy }}
+{% if  rook_ceph_objectstore_storageclass_parameters is not none %}
+      parameters:
+        {{ rook_ceph_objectstore_storageclass_parameters | to_nice_yaml(2) | indent(8) | trim }}
+{% else %}
+      parameters:
+{% endif %}

@@ -1,0 +1,12 @@
+---
+
+- name: Initial OS setup
+  hosts: all
+  remote_user: root
+  become: true
+  any_errors_fatal: true
+  tags:
+    - os
+    - os-setup
+  roles:
+    - ../roles/os-setup

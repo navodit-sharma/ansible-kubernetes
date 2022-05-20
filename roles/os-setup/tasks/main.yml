@@ -1,5 +1,0 @@
----
-
-- name: Ubuntu setup
-  include_tasks: "{{ role_path }}/tasks/ubuntu.yml"
-  when: ansible_distribution == "Ubuntu"
