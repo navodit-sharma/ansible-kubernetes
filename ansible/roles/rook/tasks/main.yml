@@ -37,7 +37,7 @@
     update_repo_cache: true
     release_namespace: "{{ rook_operator_release_namespace }}"
     create_namespace: true
-    history_max: 10
+    #history_max: 10
     atomic: no
     release_state: present
     values_files:
@@ -73,7 +73,7 @@
     update_repo_cache: true
     release_namespace: "{{ rook_cephcluster_release_namespace }}"
     create_namespace: true
-    history_max: 10
+    #history_max: 10
     atomic: no
     release_state: present
     values_files:
