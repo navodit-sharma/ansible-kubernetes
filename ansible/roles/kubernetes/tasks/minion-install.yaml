@@ -17,7 +17,7 @@
       direction: in
       interface: "{{ network_interface }}"
       port: 30000:32767
-      proto: udp
+      proto: tcp
       log: no
       comment: "Kubernetes kube-proxy"
   - name: Allow access to weave/tcp

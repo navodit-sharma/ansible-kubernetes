@@ -130,6 +130,7 @@
       - lvm2
       - logrotate
       - rsyslog
+      - cifs-utils
 
 # Enable automated security updates
 - name: Install unattended-upgrades package
