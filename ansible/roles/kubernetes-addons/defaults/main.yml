@@ -3,8 +3,16 @@
 addons_system_group: root
 addons_system_user: root
 
-# Helm
-addon_helm_version: 3.7
+# Helm - Install through snap
+addon_helm_install_using_snap: false
+addon_helm_snap_version: 3.7
+addon_helm_snap_channel_track: "{{ addon_helm_snap_version }}"
+addon_helm_snap_channel_risk_level: stable
+
+# Helm - Install from tar archive
+addon_helm_version: 3.8.2
+addon_helm_binary_url: "https://get.helm.sh/helm-v{{ addon_helm_version }}-linux-amd64.tar.gz"
+addon_helm_diff_plugin_path: "https://github.com/databus23/helm-diff"
 
 # kubectx
 addon_kubectx_repo_url: 'https://github.com/ahmetb/kubectx.git'
