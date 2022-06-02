@@ -12,19 +12,49 @@
         name: PyYAML
         state: present
         executable: pip3
-    - name: Install helm
+    - name: Install helm from snap store
       community.general.snap:
         name: helm
-        channel: "{{ addon_helm_version }}/stable"
+        channel: "{{ addon_helm_snap_channel_track }}/{{ addon_helm_snap_channel_risk_level }}"
         classic: yes
         state: present
+      when: addon_helm_install_using_snap is true
+    - name: Download helm official tar archive
+      get_url:
+        url: {{ addon_helm_binary_url }}
+        dest: "/tmp/helm-v{{ addon_helm_version }}-linux-amd64.tar.gz"
+        mode: '0440'
+      when: addon_helm_install_using_snap is false
+    - name: Unpack helm tar archive
+      shell: "tar -xzf /tmp/helm-v{{ addon_helm_version }}-linux-amd64.tar.gz linux-amd64/helm  -C /tmp"
+      changed_when: false
+      when: addon_helm_install_using_snap is false
+    - name: Copy helm binary to /usr/local/bin
+      ansible.builtin.copy:
+        src: /tmp/linux-amd64/helm
+        dest: /usr/local/bin
+        owner: {{ addons_system_group }}
+        group: {{ addons_system_user }}
+        mode: '0755'
+      when: addon_helm_install_using_snap is false
     - name: Install Helm Diff
       kubernetes.core.helm_plugin:
         state: present
-        plugin_path: https://github.com/databus23/helm-diff
+        plugin_path: {{ addon_helm_diff_plugin_path }}
     - name: Add helm bash-completion
       shell: "helm completion bash > /etc/bash_completion.d/helm"
       changed_when: false
+  tags:
+    - addon/helm
+    - addon/kubectx
+    - addon/metrics-server
+    - addon/kubernetes-dashboard
+    - addon/cert-manager
+    - addon/volume-snapshot-controller
+
+## Kubectx and Kubens
+- name: Install kubectx and kubens
+  block:
     - name: Checkout ahmetb/kubectx repo
       ansible.builtin.git:
         repo: "{{ addon_kubectx_repo_url }}"
@@ -46,11 +76,7 @@
           group: "{{ addons_system_group }}"
           state: link
   tags:
-    - addon/helm
-    - addon/metrics-server
-    - addon/kubernetes-dashboard
-    - addon/cert-manager
-    - addon/volume-snapshot-controller
+    - addon/kubectx
 
 ## Metrics server
 - name: Install Metrics server
