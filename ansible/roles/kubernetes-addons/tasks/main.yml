@@ -36,6 +36,7 @@
         owner: "{{ addons_system_group }}"
         group: "{{ addons_system_user }}"
         mode: '0755'
+        remote_src: yes
       when: addon_helm_install_using_snap is false
     - name: Install Helm Diff
       kubernetes.core.helm_plugin:
