@@ -21,7 +21,7 @@
       when: addon_helm_install_using_snap is true
     - name: Download helm official tar archive
       get_url:
-        url: {{ addon_helm_binary_url }}
+        url: "{{ addon_helm_binary_url }}"
         dest: "/tmp/helm-v{{ addon_helm_version }}-linux-amd64.tar.gz"
         mode: '0440'
       when: addon_helm_install_using_snap is false
@@ -33,14 +33,14 @@
       ansible.builtin.copy:
         src: /tmp/linux-amd64/helm
         dest: /usr/local/bin
-        owner: {{ addons_system_group }}
-        group: {{ addons_system_user }}
+        owner: "{{ addons_system_group }}"
+        group: "{{ addons_system_user }}"
         mode: '0755'
       when: addon_helm_install_using_snap is false
     - name: Install Helm Diff
       kubernetes.core.helm_plugin:
         state: present
-        plugin_path: {{ addon_helm_diff_plugin_path }}
+        plugin_path: "{{ addon_helm_diff_plugin_path }}"
     - name: Add helm bash-completion
       shell: "helm completion bash > /etc/bash_completion.d/helm"
       changed_when: false
