@@ -23,14 +23,14 @@
     - rook/helm-config-only
 - name: Add rook-operator's helm repository
   kubernetes.core.helm_repository:
-    binary_path: "/snap/bin/helm"
+    binary_path: "/usr/local/bin/helm"
     name: "{{ rook_operator_repo_name }}"
     repo_url: "{{ rook_operator_repo_url }}"
   tags:
     - rook/helm-config-only
 - name: Deploy rook-operator
   kubernetes.core.helm:
-    binary_path: "/snap/bin/helm"
+    binary_path: "/usr/local/bin/helm"
     release_name: "{{ rook_operator_release_name }}"
     chart_ref: "{{ rook_operator_chart_ref }}"
     chart_version: "{{ rook_operator_chart_version }}"
@@ -66,7 +66,7 @@
     - rook/helm-config-only
 - name: Deploy rook-cephcluster
   kubernetes.core.helm:
-    binary_path: "/snap/bin/helm"
+    binary_path: "/usr/local/bin/helm"
     release_name: "{{ rook_cephcluster_release_name }}"
     chart_ref: "{{ rook_cephcluster_chart_ref }}"
     chart_version: "{{ rook_cephcluster_chart_version }}"
