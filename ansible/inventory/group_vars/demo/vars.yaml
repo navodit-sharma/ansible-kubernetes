@@ -1,0 +1,36 @@
+---
+
+# Common
+network_interface: ens160
+
+# OS
+os_apt_update_and_upgrade : true
+os_timezone: "UTC"
+os_ntp_server_list:
+  - ntp1.testlab.nav
+  - ntp2.testlab.nav
+
+# Containerd
+containerd_version: 1.5.11-1
+containerd_storage_device: /dev/sdb
+
+# Kubernetes
+kubernetes_version: 1.22.9-00
+kubernetes_kca_provider_regex: "^[a-z0-9-]*\\.testlab\\.nav$"
+kubernetes_kca_provider_ip_prefixes: "10.16.41.0/24"
+
+# Kubernetes addons
+addon_helm_version: 3.8.2
+
+# Rook (Storage)
+rook_ceph_cluster_data_dir_disk: /dev/sdc
+rook_ceph_cluster_storage_nodes_and_disks:
+  - name: "demo-k8s-02.testlab.nav"
+    devices:
+      - name: "sdd"
+  - name: "demo-k8s-03.testlab.nav"
+    devices:
+      - name: "sdd"
+  - name: "demo-k8s-04.testlab.nav"
+    devices:
+      - name: "sdd"
