@@ -1,2 +1,14 @@
 **/**-mini
 **/temp/**
+#
+#
+ansible/inventory/valpaas
+ansible/inventory/keuat
+ansible/inventory/keprod
+ansible/inventory/kestag
+ansible/inventory/group_vars/keprod/vars.yaml
+ansible/inventory/group_vars/kestag/vars.yaml
+ansible/inventory/group_vars/keuat/vars.yaml
+ansible/inventory/group_vars/valpaas/vars.yaml
+CHANGELOG.md
+README.md
